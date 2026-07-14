@@ -1,0 +1,47 @@
+import { Component, computed, effect, inject, input } from '@angular/core';
+import { MaterialModule } from '../../shared/modules/mareial.module';
+import { Router } from '@angular/router';
+import { PhotoService } from '../../shared/services/photo.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+@Component({
+  selector: 'app-photo-details',
+  imports: [MaterialModule],
+  templateUrl: './photo-details.html',
+  styleUrl: './photo-details.scss',
+})
+export class PhotoDetails {
+
+  // Modern dependency injection
+  private router = inject(Router);
+  private photoService = inject(PhotoService);
+  private snackBar = inject(MatSnackBar)
+
+  // Signal Input: Automatically bound from the ':id' route parameter
+  id = input.required<string>();
+
+  // Computed Signal: Automatically updates if the ID or the favorites array changes
+  photo = computed(() => this.photoService.getFavoriteById(this.id()));
+
+  constructor() {
+    // Reactive Redirect Effect: If the photo is not found (or gets removed),
+    // this effect triggers automatically and redirects the user back to favorites.
+    effect(() => {
+      if (!this.photo()) {
+        this.router.navigate(['/favorites'])
+      }
+    })
+  }
+
+  // Remove photo from favorites
+  remove() {
+    const currentPhoto = this.photo();
+    if (currentPhoto) {
+      this.photoService.removeFromFavorites(currentPhoto.id);// Removing it will automatically trigger above effect above and redirect us
+      this.snackBar.open('Photo removed from Favorites!', 'Close', { duration: 2000 })
+    } else {
+      this.snackBar.open('Photo not found!', 'Close', { duration: 2000 })
+    }
+  }
+
+}
