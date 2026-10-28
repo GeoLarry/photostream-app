@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardImage } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -19,13 +19,16 @@ export class Photos implements OnInit, AfterViewInit, OnDestroy {
   private snackBar = inject(MatSnackBar)
   private scrollAnchor = viewChild<ElementRef<HTMLDivElement>>('scrollAnchor');
 
-  photos = signal<Photo[]>([]);
-  isLoading = signal<boolean>(false);
+  photos = this.photoService.photos;
+  isLoading = this.photoService.isLoading;
   private favorites = this.photoService.favorites;
   private observer?: IntersectionObserver;
 
   ngOnInit() {
-    this.loadMorePhotos();
+    // The service keeps the stream, so only load when coming here for the first time
+    if (this.photos().length === 0) {
+      this.loadMorePhotos();
+    }
   }
 
   ngAfterViewInit() {
@@ -50,17 +53,11 @@ export class Photos implements OnInit, AfterViewInit, OnDestroy {
 
   // Load more photos asynchronously from photoService
   async loadMorePhotos(): Promise<void> {
-    if (this.isLoading()) return; // Prevent duplicate API requests
-
-    this.isLoading.set(true);
     try {
-      const newPhotos = await this.photoService.getRandomPhotos(15);
-      this.photos.update(current => [...current, ...newPhotos]); //Append using signals updte
+      await this.photoService.loadNextPage();
     } catch (error) {
       console.error('Failed to load photos', error);
       this.snackBar.open('Failed to load photos.', 'Close', { duration: 2000 })
-    } finally {
-      this.isLoading.set(false);
     }
   }
 

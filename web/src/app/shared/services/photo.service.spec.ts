@@ -44,24 +44,62 @@ describe('PhotoService', () => {
     expect(service).toBeTruthy();
   });
 
-  // Test 2: Verifies fetching data from Picsum API and handling the Promise stream (Async/Await)
-  it('should fetch random photos from Picsum API', async () => {
-    const dummyPhotos: Photo[] = [mockPhoto];
-    const count = 1;
+  describe('photostream paging', () => {
+    const photo = (id: string): Photo => ({ ...mockPhoto, id });
+    const listUrl = (page: number) => `https://picsum.photos/v2/list?page=${page}&limit=15`;
+    // Let pending promise callbacks run so the next request is issued
+    const settle = () => new Promise(resolve => setTimeout(resolve));
 
-    // Call the Promise-based API method
-    const promise = service.getRandomPhotos(count);
+    beforeEach(() => {
+      // Start page = 1 + floor(0.5 * 30) = 16
+      spyOn(Math, 'random').and.returnValue(0.5);
+    });
 
-    // Match any GET request that hits the picsum list endpoint
-    const req = httpMock.expectOne((request) => request.url.startsWith('https://picsum.photos/v2/list'));
-    expect(req.request.method).toBe('GET');
-    
-    // Respond with dummy data to resolve the Promise
-    req.flush(dummyPhotos);
+    it('should start on a random page and then load pages sequentially', async () => {
+      let loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(16)).flush([photo('1'), photo('2')]);
+      await loading;
 
-    const photos = await promise;
-    expect(photos.length).toBe(1);
-    expect(photos).toEqual(dummyPhotos);
+      loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(17)).flush([photo('3')]);
+      await loading;
+
+      expect(service.photos().map(p => p.id)).toEqual(['1', '2', '3']);
+    });
+
+    it('should skip photos that are already loaded', async () => {
+      let loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(16)).flush([photo('1'), photo('2'), photo('2')]);
+      await loading;
+
+      loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(17)).flush([photo('2'), photo('3')]);
+      await loading;
+
+      expect(service.photos().map(p => p.id)).toEqual(['1', '2', '3']);
+    });
+
+    it('should wrap around to page 1 when a page comes back empty', async () => {
+      let loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(16)).flush([]);
+      await settle();
+      httpMock.expectOne(listUrl(1)).flush([photo('1')]);
+      await loading;
+
+      loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(2)).flush([photo('2')]);
+      await loading;
+
+      expect(service.photos().map(p => p.id)).toEqual(['1', '2']);
+    });
+
+    it('should ignore a second call while a page is loading', async () => {
+      const loading = service.loadNextPage();
+      service.loadNextPage();
+      httpMock.expectOne(listUrl(16)).flush([photo('1')]);
+      await loading;
+      expect(service.isLoading()).toBeFalse();
+    });
   });
 
   // Test 3: Verifies managing favorite list reactively and local storage synchronization using Signals
