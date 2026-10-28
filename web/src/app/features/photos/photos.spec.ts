@@ -4,18 +4,23 @@ import { Photos } from './photos';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { PhotoService } from '../../shared/services/photo.service';
+import { Photo } from '../../models/photo.model';
+import { IMAGE_LOADER } from '@angular/common';
+import { picsumLoader } from '../../shared/images/picsum-loader';
 
 describe('Photos', () => {
   let component: Photos;
   let fixture: ComponentFixture<Photos>;
 
   beforeEach(async () => {
+    localStorage.clear(); // PhotoService reads favorites on creation
     await TestBed.configureTestingModule({
       imports: [Photos],
       providers: [
         PhotoService,
         provideHttpClient(),
-        provideHttpClientTesting() // Modern functional testing HTTP client provider
+        provideHttpClientTesting(), // Modern functional testing HTTP client provider
+        { provide: IMAGE_LOADER, useValue: picsumLoader }
       ]
     })
     .compileComponents();
@@ -31,6 +36,41 @@ describe('Photos', () => {
 
   it('should request the first photostream page on init', () => {
     const httpMock = TestBed.inject(HttpTestingController);
-    httpMock.expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
+    const req = httpMock.expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
+    expect(req.request.method).toBe('GET');
+  });
+
+  describe('with a loaded photo', () => {
+    const photo: Photo = {
+      id: '101',
+      download_url: 'https://picsum.photos/id/101/5000/3333',
+      width: 5000,
+      height: 3333,
+      url: 'https://unsplash.com/photos/abc',
+      author: 'John Doe'
+    };
+
+    beforeEach(async () => {
+      TestBed.inject(HttpTestingController)
+        .expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'))
+        .flush([photo]);
+      // Wait out the simulated API delay (at most 300 ms)
+      await new Promise(resolve => setTimeout(resolve, 350));
+      fixture.detectChanges();
+    });
+
+    afterEach(() => localStorage.clear());
+
+    it('should give the favorite button a state-aware accessible name', async () => {
+      const button = () => fixture.nativeElement.querySelector('.fav-btn') as HTMLButtonElement;
+      expect(button().getAttribute('aria-label')).toBe('Add to favorites');
+      expect(button().getAttribute('aria-pressed')).toBe('false');
+
+      button().click();
+      fixture.detectChanges();
+
+      expect(button().getAttribute('aria-label')).toBe('Remove from favorites');
+      expect(button().getAttribute('aria-pressed')).toBe('true');
+    });
   });
 });

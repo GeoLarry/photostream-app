@@ -7,7 +7,9 @@
       <div class="card-overlay">
         <span class="author-name">{{ photo.author }}</span>
         
-        <button mat-icon-button (click)="toggleFavorite(photo, $event)" class="fav-btn">
+        <button mat-icon-button (click)="toggleFavorite(photo, $event)" class="fav-btn"
+          [attr.aria-label]="isFavorite(photo.id) ? 'Remove from favorites' : 'Add to favorites'"
+          [attr.aria-pressed]="isFavorite(photo.id)">
           <mat-icon>{{ isFavorite(photo.id) ? 'favorite' : 'favorite_border' }}</mat-icon>
         </button>
       </div>
