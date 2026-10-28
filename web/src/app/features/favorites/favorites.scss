@@ -16,15 +16,31 @@
 
   &:hover {
     transform: translateY(-5px);
+  }
 
+  // Hover reveals the overlay; keyboard focus inside the card does too
+  &:hover,
+  &:focus-within {
     .card-overlay {
       opacity: 1;
     }
   }
 
+  // Touch screens have no hover, so the overlay (and favorite button) is always visible
+  @media (hover: none) {
+    .card-overlay {
+      opacity: 1;
+    }
+  }
+
+  .card-link {
+    display: block;
+  }
+
   img {
     width: 100%;
-    height: 320px;
+    height: auto;
+    aspect-ratio: 3 / 2; // Matches the 600x400 size requested from Picsum
     object-fit: cover;
     display: block;
   }
@@ -40,6 +56,7 @@
   opacity: 0;
   transition: opacity 0.3s ease;
   color: white;
+  pointer-events: none; // Clicks on the overlay go through to the card link
 }
 
 .author-name {

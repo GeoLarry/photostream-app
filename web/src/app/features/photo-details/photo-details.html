@@ -1,19 +1,42 @@
-@if (photo(); as activePhoto) {
-  <div class="details-container">
-    <div class="photo-card-fullscreen">
-      <img [src]="activePhoto.download_url" [alt]="activePhoto.author" class="fullscreen-img">
-      
-      <div class="info-bar">
-        <div class="author-info">
-          <span class="label">Shot by</span>
-          <span class="author-name">{{ activePhoto.author }}</span>
-        </div>
-        
-        <button mat-flat-button color="warn" (click)="remove()" class="remove-btn">
-          <mat-icon>delete</mat-icon>
-          Remove from Favorites
-        </button>
+<div class="details-container">
+  <div class="details-content">
+    <button mat-button (click)="goBack()" class="back-btn">
+      <mat-icon>arrow_back</mat-icon>
+      Back
+    </button>
+
+    @if (photo.isLoading()) {
+      <div class="state">
+        <mat-spinner diameter="50" aria-label="Loading photo"></mat-spinner>
       </div>
-    </div>
+    } @else if (photo.error()) {
+      <div class="state error-state" role="alert">
+        <mat-icon>error_outline</mat-icon>
+        <p>We couldn't load this photo.</p>
+        <button mat-stroked-button (click)="photo.reload()">Try again</button>
+      </div>
+    } @else if (photo.hasValue()) {
+      @let activePhoto = photo.value();
+      <div class="photo-card-fullscreen">
+        <div class="image-frame">
+          <img [ngSrc]="activePhoto.id" width="1200" [height]="imageHeight(activePhoto)"
+            [loaderParams]="{ width: 1200, height: imageHeight(activePhoto) }" priority
+            [alt]="activePhoto.author" class="fullscreen-img">
+        </div>
+
+        <div class="info-bar">
+          <div class="author-info">
+            <span class="label">Shot by</span>
+            <span class="author-name">{{ activePhoto.author }}</span>
+          </div>
+
+          <button mat-flat-button (click)="toggleFavorite(activePhoto)" class="fav-toggle"
+            [class.is-favorite]="isFavorite()" [attr.aria-pressed]="isFavorite()">
+            <mat-icon>{{ isFavorite() ? 'favorite' : 'favorite_border' }}</mat-icon>
+            {{ isFavorite() ? 'Remove from favorites' : 'Add to favorites' }}
+          </button>
+        </div>
+      </div>
+    }
   </div>
-}
+</div>

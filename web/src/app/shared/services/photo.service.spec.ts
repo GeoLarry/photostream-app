@@ -19,6 +19,8 @@ describe('PhotoService', () => {
   };
 
   beforeEach(() => {
+    // Clear localStorage before the service reads it, to guarantee an isolated state
+    localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
         PhotoService,
@@ -29,12 +31,10 @@ describe('PhotoService', () => {
 
     service = TestBed.inject(PhotoService);
     httpMock = TestBed.inject(HttpTestingController);
-    
-    // Clear localStorage before each test to guarantee an isolated state
-    localStorage.clear();
   });
 
   afterEach(() => {
+    localStorage.clear();
     // Verify that no mismatched or outstanding HTTP requests remain open
     httpMock.verify();
   });
@@ -44,24 +44,62 @@ describe('PhotoService', () => {
     expect(service).toBeTruthy();
   });
 
-  // Test 2: Verifies fetching data from Picsum API and handling the Promise stream (Async/Await)
-  it('should fetch random photos from Picsum API', async () => {
-    const dummyPhotos: Photo[] = [mockPhoto];
-    const count = 1;
+  describe('photostream paging', () => {
+    const photo = (id: string): Photo => ({ ...mockPhoto, id });
+    const listUrl = (page: number) => `https://picsum.photos/v2/list?page=${page}&limit=15`;
+    // Let pending promise callbacks run so the next request is issued
+    const settle = () => new Promise(resolve => setTimeout(resolve));
 
-    // Call the Promise-based API method
-    const promise = service.getRandomPhotos(count);
+    beforeEach(() => {
+      // Start page = 1 + floor(0.5 * 30) = 16
+      spyOn(Math, 'random').and.returnValue(0.5);
+    });
 
-    // Match any GET request that hits the picsum list endpoint
-    const req = httpMock.expectOne((request) => request.url.startsWith('https://picsum.photos/v2/list'));
-    expect(req.request.method).toBe('GET');
-    
-    // Respond with dummy data to resolve the Promise
-    req.flush(dummyPhotos);
+    it('should start on a random page and then load pages sequentially', async () => {
+      let loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(16)).flush([photo('1'), photo('2')]);
+      await loading;
 
-    const photos = await promise;
-    expect(photos.length).toBe(1);
-    expect(photos).toEqual(dummyPhotos);
+      loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(17)).flush([photo('3')]);
+      await loading;
+
+      expect(service.photos().map(p => p.id)).toEqual(['1', '2', '3']);
+    });
+
+    it('should skip photos that are already loaded', async () => {
+      let loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(16)).flush([photo('1'), photo('2'), photo('2')]);
+      await loading;
+
+      loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(17)).flush([photo('2'), photo('3')]);
+      await loading;
+
+      expect(service.photos().map(p => p.id)).toEqual(['1', '2', '3']);
+    });
+
+    it('should wrap around to page 1 when a page comes back empty', async () => {
+      let loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(16)).flush([]);
+      await settle();
+      httpMock.expectOne(listUrl(1)).flush([photo('1')]);
+      await loading;
+
+      loading = service.loadNextPage();
+      httpMock.expectOne(listUrl(2)).flush([photo('2')]);
+      await loading;
+
+      expect(service.photos().map(p => p.id)).toEqual(['1', '2']);
+    });
+
+    it('should ignore a second call while a page is loading', async () => {
+      const loading = service.loadNextPage();
+      service.loadNextPage();
+      httpMock.expectOne(listUrl(16)).flush([photo('1')]);
+      await loading;
+      expect(service.isLoading()).toBeFalse();
+    });
   });
 
   // Test 3: Verifies managing favorite list reactively and local storage synchronization using Signals
@@ -101,5 +139,51 @@ describe('PhotoService', () => {
 
     const notFoundPhoto = service.getFavoriteById('999');
     expect(notFoundPhoto).toBeUndefined();
+  });
+
+  it('should return a favorite from getPhoto without calling the API', async () => {
+    service.addToFavorites(mockPhoto);
+    expect(await service.getPhoto('101')).toEqual(mockPhoto);
+    httpMock.expectNone('https://picsum.photos/id/101/info');
+  });
+
+  it('should fetch a non-favorite photo from the Picsum info endpoint', async () => {
+    const loading = service.getPhoto('101');
+    httpMock.expectOne('https://picsum.photos/id/101/info').flush(mockPhoto);
+    expect(await loading).toEqual(mockPhoto);
+  });
+
+  it('should toggle a favorite on and off', () => {
+    expect(service.toggleFavorite(mockPhoto)).toBeTrue();
+    expect(service.isFavorite('101')).toBeTrue();
+
+    expect(service.toggleFavorite(mockPhoto)).toBeFalse();
+    expect(service.isFavorite('101')).toBeFalse();
+  });
+
+  describe('loading favorites from localStorage', () => {
+    // The service reads localStorage on construction, so each case needs a fresh instance
+    function serviceWithStored(value: string): PhotoService {
+      localStorage.setItem('favorites_photos', value);
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [PhotoService, provideHttpClient(), provideHttpClientTesting()]
+      });
+      httpMock = TestBed.inject(HttpTestingController);
+      return TestBed.inject(PhotoService);
+    }
+
+    it('should start empty when the stored JSON is corrupt', () => {
+      expect(serviceWithStored('{not json').favorites()).toEqual([]);
+    });
+
+    it('should start empty when the stored value is not an array', () => {
+      expect(serviceWithStored('{"id":"101"}').favorites()).toEqual([]);
+    });
+
+    it('should keep only entries with the Photo shape', () => {
+      const stored = JSON.stringify([mockPhoto, null, 'x', { id: 7, author: 'A' }, { ...mockPhoto, id: '102', width: '200' }]);
+      expect(serviceWithStored(stored).favorites()).toEqual([mockPhoto]);
+    });
   });
 });

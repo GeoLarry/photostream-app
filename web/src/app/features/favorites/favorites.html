@@ -1,7 +1,10 @@
 <div class="favorites-grid">
   @for (photo of favorites(); track photo.id) {
-    <mat-card class="photo-card" (click)="viewDetail(photo.id)">
-      <img mat-card-image [src]="photo.download_url" [alt]="photo.author" loading="lazy">
+    <mat-card class="photo-card">
+      <a class="card-link" [routerLink]="['/photos', photo.id]" [attr.aria-label]="'View photo by ' + photo.author">
+        <img mat-card-image [ngSrc]="photo.id" width="600" height="400"
+          [loaderParams]="{ width: 600, height: 400 }" [priority]="$index < 3" [alt]="photo.author">
+      </a>
       <div class="card-overlay">
         <span class="author-name">{{ photo.author }}</span>
       </div>

@@ -1,12 +1,17 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
-import { MaterialModule } from '../../shared/modules/mareial.module';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, viewChild } from '@angular/core';
+import { MatIconButton } from '@angular/material/button';
+import { MatCard, MatCardImage } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { PhotoService } from '../../shared/services/photo.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Photo } from '../../models/photo.model';
+import { NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-photos',
-  imports: [MaterialModule],
+  imports: [NgOptimizedImage, RouterLink, MatCard, MatCardImage, MatIconButton, MatIcon, MatProgressSpinner],
   templateUrl: './photos.html',
   styleUrl: './photos.scss',
 })
@@ -16,13 +21,15 @@ export class Photos implements OnInit, AfterViewInit, OnDestroy {
   private snackBar = inject(MatSnackBar)
   private scrollAnchor = viewChild<ElementRef<HTMLDivElement>>('scrollAnchor');
 
-  photos = signal<Photo[]>([]);
-  isLoading = signal<boolean>(false);
-  private favorites = this.photoService.favorites;
+  photos = this.photoService.photos;
+  isLoading = this.photoService.isLoading;
   private observer?: IntersectionObserver;
 
   ngOnInit() {
-    this.loadMorePhotos();
+    // The service keeps the stream, so only load when coming here for the first time
+    if (this.photos().length === 0) {
+      this.loadMorePhotos();
+    }
   }
 
   ngAfterViewInit() {
@@ -30,34 +37,22 @@ export class Photos implements OnInit, AfterViewInit, OnDestroy {
   }
 
   isFavorite(photoId: string): boolean {
-    return this.favorites().some(p => p.id === photoId);
+    return this.photoService.isFavorite(photoId);
   }
 
   // Toggle favorite photo status
-  toggleFavorite(photo: Photo, event: Event) {
-    event.stopPropagation(); // Prevents triggering any card click actions
-    if (this.isFavorite(photo.id)) {
-      this.photoService.removeFromFavorites(photo.id);
-      this.snackBar.open('Removed from Favorites!', 'Close', { duration: 2000 })
-    } else {
-      this.photoService.addToFavorites(photo);
-      this.snackBar.open('Added to Favorites! ❤️', 'Close', { duration: 2000 })
-    }
+  toggleFavorite(photo: Photo) {
+    const added = this.photoService.toggleFavorite(photo);
+    this.snackBar.open(added ? 'Added to Favorites! ❤️' : 'Removed from Favorites!', 'Close', { duration: 2000 })
   }
 
   // Load more photos asynchronously from photoService
   async loadMorePhotos(): Promise<void> {
-    if (this.isLoading()) return; // Prevent duplicate API requests
-
-    this.isLoading.set(true);
     try {
-      const newPhotos = await this.photoService.getRandomPhotos(15);
-      this.photos.update(current => [...current, ...newPhotos]); //Append using signals updte
+      await this.photoService.loadNextPage();
     } catch (error) {
       console.error('Failed to load photos', error);
-      this, this.snackBar.open('Failed to load photos.', 'Close', { duration: 2000 })
-    } finally {
-      this.isLoading.set(false);
+      this.snackBar.open('Failed to load photos.', 'Close', { duration: 2000 })
     }
   }
 

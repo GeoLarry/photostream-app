@@ -1,59 +1,31 @@
-# PhotoLibraryApp
+# Photostream web
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.3.
+Angular frontend of Photostream: an infinite photostream from [Lorem Picsum](https://picsum.photos), a detail page for any photo, and favorites saved in the browser.
 
-## Development server
+## Features
+- **Photostream** (`/`): starts on a random Picsum page, then loads the next pages as you scroll, without duplicates.
+- **Photo details** (`/photos/:id`): opens any photo, from favorites or from Picsum, and lets you add or remove it as a favorite.
+- **Favorites** (`/favorites`): photos you liked, kept in `localStorage`.
 
-To start a local development server, run:
+Images are requested from Picsum at the size they are displayed (600×400 in grids, about 1200px wide on the detail page) through a custom `NgOptimizedImage` loader.
 
+## Stack
+- Angular 20: standalone components, signals, zoneless change detection
+- Angular Material
+- Karma + Jasmine for unit tests
+
+## Getting started
 ```bash
-ng serve
+npm install
+npm start          # dev server on http://localhost:4200
+npm run build      # production build in dist/
+npm test           # unit tests (add -- --watch=false for a single run)
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+## Structure
 ```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
+src/app/
+  features/      one folder per page: photos, photo-details, favorites
+  shared/        header component, PhotoService, Picsum image loader
+  models/        TypeScript interfaces for API data
 ```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

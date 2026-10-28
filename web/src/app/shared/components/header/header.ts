@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { MaterialModule } from '../../modules/mareial.module';
+import { MatButton } from '@angular/material/button';
+import { MatToolbar } from '@angular/material/toolbar';
 
 @Component({
   selector: 'app-header',
@@ -8,7 +9,8 @@ import { MaterialModule } from '../../modules/mareial.module';
   imports: [
     RouterLink,
     RouterLinkActive,
-    MaterialModule
+    MatToolbar,
+    MatButton
   ],
   templateUrl: './header.html',
   styleUrl: './header.scss',
