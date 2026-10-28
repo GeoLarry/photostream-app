@@ -11,6 +11,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<Favorite> Favorites => Set<Favorite>();
 
+    // Every DateTime is UTC. SQLite (and SQL Server datetime2) keep no time zone, so values would come
+    // back as Unspecified and be serialized without "Z", and browsers would read them as local time.
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(user =>
