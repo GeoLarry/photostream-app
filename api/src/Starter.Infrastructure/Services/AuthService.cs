@@ -8,13 +8,17 @@ using Starter.Infrastructure.Data;
 
 namespace Starter.Infrastructure.Services;
 
-public class AuthService(AppDbContext db, ITokenService tokenService, IPermissionService permissionService) : IAuthService
+public class AuthService(
+    AppDbContext db,
+    ITokenService tokenService,
+    IPermissionService permissionService,
+    IEmailConfirmationService emailConfirmation) : IAuthService
 {
     // Hash of a random password, compared against when the username does not exist,
     // so a login for an unknown user takes as long as one for a known user.
     private static readonly string DummyPasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString());
 
-    public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
+    public async Task RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
         InputRules.Username(request.Username);
         InputRules.Email(request.Email);
@@ -52,13 +56,15 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IPermissio
         db.Users.Add(user);
         await db.SaveChangesAsync(ct);
 
-        return await BuildAuthResponseAsync(user.Id, ct);
+        await emailConfirmation.SendConfirmationAsync(user, ct);
     }
 
-    public async Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken ct = default)
+    public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
+        LoginResult invalid = new(LoginOutcome.InvalidCredentials);
+
         if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrEmpty(request.Password))
-            return null;
+            return invalid;
 
         // Sign in with either the username or the email.
         string normalized = request.Username.Trim().ToUpperInvariant();
@@ -70,9 +76,32 @@ public class AuthService(AppDbContext db, ITokenService tokenService, IPermissio
 
         // Wrong credentials and a deactivated account return the same result on purpose.
         if (user is null || !passwordMatches || !user.IsActive)
-            return null;
+            return invalid;
 
-        return await BuildAuthResponseAsync(user.Id, ct);
+        // Checked only after the password, so this does not reveal which accounts exist.
+        if (user.EmailConfirmedAtUtc is null)
+            return new LoginResult(LoginOutcome.EmailNotConfirmed);
+
+        return new LoginResult(LoginOutcome.Success, await BuildAuthResponseAsync(user.Id, ct));
+    }
+
+    public async Task<AuthResponse?> ConfirmEmailAsync(string token, CancellationToken ct = default)
+    {
+        int? userId = await emailConfirmation.ConfirmAsync(token, ct);
+        return userId is int id ? await BuildAuthResponseAsync(id, ct) : null;
+    }
+
+    public async Task ResendConfirmationAsync(string email, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return;
+
+        string normalizedEmail = email.Trim().ToUpperInvariant();
+        User? user = await db.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail && u.IsActive && u.EmailConfirmedAtUtc == null, ct);
+
+        if (user is not null)
+            await emailConfirmation.SendConfirmationAsync(user, ct);
     }
 
     public async Task<CurrentUserDto?> GetCurrentUserAsync(int userId, CancellationToken ct = default)

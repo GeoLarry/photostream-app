@@ -29,6 +29,14 @@ web/   Angular frontend
 
 ## Run locally
 
+Mail server for sign-up emails (requires Docker):
+
+```bash
+docker compose up -d
+```
+
+[Mailpit](https://mailpit.axllent.org) catches every email the API sends: open the inbox at http://localhost:8025. Without it the API still runs and writes each email, with its confirmation link, to the console.
+
 Backend (requires the .NET 10 SDK):
 
 ```bash
@@ -36,9 +44,11 @@ cd api
 dotnet run --project src/Starter.Api
 ```
 
-API on http://localhost:5080, API reference at http://localhost:5080/scalar/v1. Development admin: `admin` / `Admin123!`.
+API on http://localhost:5080, API reference at http://localhost:5080/scalar/v1. Development admin: `admin` / `Admin123!`, demo users: `Demo123!`.
 
-Roles are seeded only into an empty database. If you ran the API before favorites existed, delete `api/src/Starter.Api/app.db` once so the `User` role gets the `Favorites` permissions.
+New sign-ups must confirm their email before they can log in. Accounts created by the seeder or by an admin start confirmed.
+
+The schema is created on first run and there are no migrations yet. After pulling changes to the data model (favorites, email confirmation), delete `api/src/Starter.Api/app.db` once so it is recreated.
 
 Frontend (requires Node.js 22):
 

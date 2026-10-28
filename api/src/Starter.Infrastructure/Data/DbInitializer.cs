@@ -104,6 +104,7 @@ public static class DbInitializer
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(seed.AdminPassword),
             FirstName = "System",
             LastName = "Administrator",
+            EmailConfirmedAtUtc = DateTime.UtcNow,
             UserRoles = adminRoleIds.Select(roleId => new UserRole { RoleId = roleId }).ToList()
         });
 
@@ -140,6 +141,10 @@ public static class DbInitializer
 
             string email = $"{username}@example.com";
 
+            // Same call order as before, so the fixed seed keeps producing the same demo users.
+            bool isActive = faker.Random.Bool(0.9f);
+            DateTime createdAtUtc = faker.Date.Past(1).ToUniversalTime();
+
             demoUsers.Add(new User
             {
                 Username = username,
@@ -149,8 +154,9 @@ public static class DbInitializer
                 PasswordHash = demoPasswordHash,
                 FirstName = firstName,
                 LastName = lastName,
-                IsActive = faker.Random.Bool(0.9f),
-                CreatedAtUtc = faker.Date.Past(1).ToUniversalTime(),
+                IsActive = isActive,
+                CreatedAtUtc = createdAtUtc,
+                EmailConfirmedAtUtc = createdAtUtc,
                 UserRoles = [new UserRole { RoleId = userRoleId }]
             });
         }

@@ -18,7 +18,8 @@ Content-Type: application/json
 GET {{baseUrl}}/api/auth/me
 Authorization: Bearer {{token}}
 
-### 3. Register a new user (gets the default "User" role)
+### 3. Register a new user (gets the default "User" role). Returns 202 and emails a confirmation link:
+###    open it in Mailpit (http://localhost:8025) or copy the token from it into request 3b.
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
@@ -28,6 +29,22 @@ Content-Type: application/json
   "password": "Password1",
   "firstName": "Jane",
   "lastName": "Doe"
+}
+
+### 3b. Confirm the email with the token from the link. Signs the user in.
+POST {{baseUrl}}/api/auth/confirm-email
+Content-Type: application/json
+
+{
+  "token": "<token from the email>"
+}
+
+### 3c. Send a new link (always 202, whether or not the address exists)
+POST {{baseUrl}}/api/auth/resend-confirmation
+Content-Type: application/json
+
+{
+  "email": "jane.doe@example.com"
 }
 
 ### 4. Users, paged and searchable
