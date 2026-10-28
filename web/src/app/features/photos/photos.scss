@@ -16,7 +16,18 @@
 
   &:hover {
     transform: translateY(-5px);
+  }
 
+  // Hover reveals the overlay; keyboard focus inside the card does too
+  &:hover,
+  &:focus-within {
+    .card-overlay {
+      opacity: 1;
+    }
+  }
+
+  // Touch screens have no hover, so the overlay (and favorite button) is always visible
+  @media (hover: none) {
     .card-overlay {
       opacity: 1;
     }
