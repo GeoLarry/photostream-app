@@ -1,0 +1,44 @@
+<div class="auth-page">
+  <mat-card class="auth-card" appearance="outlined">
+    <h1>Check your email</h1>
+    @if (email()) {
+      <p class="auth-intro">
+        We sent a confirmation link to <strong>{{ email() }}</strong>. Open it to activate your account.
+        The link works for 24 hours.
+      </p>
+    } @else {
+      <p class="auth-intro">Enter the address you signed up with and we'll send you a new confirmation link.</p>
+    }
+
+    @if (message()) {
+      <div class="auth-success" role="status">{{ message() }}</div>
+    }
+    @if (error()) {
+      <div class="auth-error" role="alert">{{ error() }}</div>
+    }
+
+    <form (ngSubmit)="resend()" novalidate>
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" [formControl]="emailControl" autocomplete="email" />
+        @if (emailControl.hasError('required')) {
+          <mat-error>Enter your email.</mat-error>
+        } @else if (emailControl.invalid) {
+          <mat-error>Enter a valid email address.</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="auth-actions">
+        <button mat-stroked-button type="submit" [disabled]="sending() || cooldown() > 0">
+          @if (cooldown() > 0) {
+            Resend in {{ cooldown() }}s
+          } @else {
+            Resend email
+          }
+        </button>
+      </div>
+    </form>
+
+    <p class="auth-footer">Already confirmed? <a routerLink="/login">Log in</a></p>
+  </mat-card>
+</div>

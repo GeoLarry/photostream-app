@@ -1,0 +1,18 @@
+<div class="auth-page">
+  <mat-card class="auth-card" appearance="outlined">
+    @if (error()) {
+      <h1>We couldn't confirm your email</h1>
+      <div class="auth-error" role="alert">{{ error() }}</div>
+      <p class="auth-intro">Links work once and expire after 24 hours. If you already confirmed, just log in.</p>
+      <div class="auth-actions">
+        <a mat-flat-button routerLink="/check-email">Send a new link</a>
+        <a mat-button routerLink="/login">Log in</a>
+      </div>
+    } @else {
+      <h1>Confirming your email…</h1>
+      <div class="auth-actions">
+        <mat-spinner diameter="32" aria-label="Confirming your email"></mat-spinner>
+      </div>
+    }
+  </mat-card>
+</div>

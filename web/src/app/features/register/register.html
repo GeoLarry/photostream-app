@@ -1,0 +1,66 @@
+<div class="auth-page">
+  <mat-card class="auth-card" appearance="outlined">
+    <h1>Sign up</h1>
+    <p class="auth-intro">Create an account to keep your favorite photos on every device.</p>
+
+    @if (error()) {
+      <div class="auth-error" role="alert">{{ error() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="auth-row">
+        <mat-form-field appearance="outline">
+          <mat-label>First name</mat-label>
+          <input matInput formControlName="firstName" autocomplete="given-name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Last name</mat-label>
+          <input matInput formControlName="lastName" autocomplete="family-name" />
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Username</mat-label>
+        <input matInput formControlName="username" autocomplete="username" />
+        <mat-hint>3-50 characters: letters, digits, dot, dash or underscore</mat-hint>
+        @if (form.controls.username.hasError('required')) {
+          <mat-error>Choose a username.</mat-error>
+        } @else if (form.controls.username.hasError('pattern')) {
+          <mat-error>3-50 characters: letters, digits, dot, dash or underscore.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" autocomplete="email" />
+        <mat-hint>We'll send you a link to confirm it</mat-hint>
+        @if (form.controls.email.hasError('required')) {
+          <mat-error>Enter your email.</mat-error>
+        } @else if (form.controls.email.invalid) {
+          <mat-error>Enter a valid email address.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="new-password" />
+        <mat-hint>At least 8 characters, with a letter and a digit</mat-hint>
+        @if (form.controls.password.hasError('required')) {
+          <mat-error>Choose a password.</mat-error>
+        } @else if (form.controls.password.hasError('pattern')) {
+          <mat-error>At least 8 characters, with a letter and a digit.</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="auth-actions">
+        <button mat-flat-button type="submit" [disabled]="submitting()">Create account</button>
+        @if (submitting()) {
+          <mat-spinner diameter="24" aria-label="Creating account"></mat-spinner>
+        }
+      </div>
+    </form>
+
+    <p class="auth-footer">Already have an account? <a routerLink="/login">Log in</a></p>
+  </mat-card>
+</div>
