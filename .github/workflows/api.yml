@@ -1,10 +1,16 @@
-name: CI
+name: API
 
 on:
   push:
     branches: [ main ]
+    paths: [ 'api/**', '.github/workflows/api.yml' ]
   pull_request:
     branches: [ main ]
+    paths: [ 'api/**', '.github/workflows/api.yml' ]
+
+defaults:
+  run:
+    working-directory: api
 
 jobs:
   build-and-test:
