@@ -71,6 +71,10 @@
   color: #757575;
   font-family: Roboto, "Helvetica Neue", sans-serif;
 
+  mat-spinner {
+    margin: 0 auto;
+  }
+
   .empty-icon {
     font-size: 64px;
     margin-bottom: 16px;

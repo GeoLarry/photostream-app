@@ -5,6 +5,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { IMAGE_LOADER } from '@angular/common';
 import { provideRouter, Router } from '@angular/router';
 import { PhotoService } from '../../shared/services/photo.service';
+import { FavoritesService } from '../../shared/services/favorites.service';
+import { FakeFavoritesService } from '../../shared/testing/fake-favorites.service';
 import { picsumLoader } from '../../shared/images/picsum-loader';
 import { Photo } from '../../models/photo.model';
 
@@ -12,7 +14,7 @@ describe('PhotoDetails', () => {
   let component: PhotoDetails;
   let fixture: ComponentFixture<PhotoDetails>;
   let httpMock: HttpTestingController;
-  let photoService: PhotoService;
+  let favorites: FakeFavoritesService;
 
   const photo: Photo = {
     id: '7',
@@ -25,11 +27,12 @@ describe('PhotoDetails', () => {
   const infoUrl = 'https://picsum.photos/id/7/info';
 
   beforeEach(async () => {
-    localStorage.clear(); // PhotoService reads favorites on creation
+    favorites = new FakeFavoritesService();
     await TestBed.configureTestingModule({
       imports: [PhotoDetails],
       providers: [
         PhotoService,
+        { provide: FavoritesService, useValue: favorites },
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -38,14 +41,12 @@ describe('PhotoDetails', () => {
     }).compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);
-    photoService = TestBed.inject(PhotoService);
     fixture = TestBed.createComponent(PhotoDetails);
     component = fixture.componentInstance;
   });
 
   afterEach(() => {
     httpMock.verify();
-    localStorage.clear();
   });
 
   // Set the route id, let the resource start, and optionally answer the info request
@@ -78,7 +79,7 @@ describe('PhotoDetails', () => {
   });
 
   it('should use the stored favorite without calling the API', async () => {
-    photoService.addToFavorites(photo);
+    favorites.list.set([photo]);
     await open('7');
 
     httpMock.expectNone(infoUrl);
@@ -105,21 +106,21 @@ describe('PhotoDetails', () => {
     await settle();
 
     toggle().click();
-    fixture.detectChanges();
-    expect(photoService.isFavorite('7')).toBeTrue();
+    await settle();
+    expect(favorites.isFavorite('7')).toBeTrue();
     expect(toggle().getAttribute('aria-pressed')).toBe('true');
     expect(toggle().textContent).toContain('Remove from favorites');
 
     toggle().click();
-    fixture.detectChanges();
-    expect(photoService.isFavorite('7')).toBeFalse();
+    await settle();
+    expect(favorites.isFavorite('7')).toBeFalse();
     expect(toggle().textContent).toContain('Add to favorites');
     expect(text()).toContain('Alejandro Escamilla');
     expect(navigate).not.toHaveBeenCalled();
   });
 
   it('should fall back to the photostream when going back from a directly opened page', async () => {
-    photoService.addToFavorites(photo);
+    favorites.list.set([photo]);
     await open('7');
     const navigate = spyOn(TestBed.inject(Router), 'navigate');
 

@@ -1,19 +1,35 @@
-<div class="favorites-grid">
-  @for (photo of favorites(); track photo.id) {
-    <mat-card class="photo-card">
-      <a class="card-link" [routerLink]="['/photos', photo.id]" [attr.aria-label]="'View photo by ' + photo.author">
-        <img mat-card-image [ngSrc]="photo.id" width="600" height="400"
-          [loaderParams]="{ width: 600, height: 400 }" [priority]="$index < 3" [alt]="photo.author">
-      </a>
-      <div class="card-overlay">
-        <span class="author-name">{{ photo.author }}</span>
-      </div>
-    </mat-card>
-  } @empty {
-    <div class="empty-state">
-      <div class="empty-icon">❤️</div>
-      <h2>Your Favorites is empty</h2>
-      <p>Explore the photostream to save your favorite photos!</p>
+@if (loadFailed()) {
+  <div class="favorites-grid">
+    <div class="empty-state" role="alert">
+      <h2>We couldn't load your favorites</h2>
+      <p>Check your connection and try again.</p>
+      <button mat-stroked-button type="button" (click)="retry()">Try again</button>
     </div>
-  }
-</div>
+  </div>
+} @else if (isLoading() && favorites().length === 0) {
+  <div class="favorites-grid">
+    <div class="empty-state">
+      <mat-spinner diameter="50" aria-label="Loading your favorites"></mat-spinner>
+    </div>
+  </div>
+} @else {
+  <div class="favorites-grid">
+    @for (photo of favorites(); track photo.id) {
+      <mat-card class="photo-card">
+        <a class="card-link" [routerLink]="['/photos', photo.id]" [attr.aria-label]="'View photo by ' + photo.author">
+          <img mat-card-image [ngSrc]="photo.id" width="600" height="400"
+            [loaderParams]="{ width: 600, height: 400 }" [priority]="$index < 3" [alt]="photo.author">
+        </a>
+        <div class="card-overlay">
+          <span class="author-name">{{ photo.author }}</span>
+        </div>
+      </mat-card>
+    } @empty {
+      <div class="empty-state">
+        <div class="empty-icon">❤️</div>
+        <h2>Your Favorites is empty</h2>
+        <p>Explore the photostream to save your favorite photos!</p>
+      </div>
+    }
+  </div>
+}

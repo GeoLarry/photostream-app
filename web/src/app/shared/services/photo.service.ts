@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Photo } from '../../models/photo.model';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { FavoritesService } from './favorites.service';
 
 // The original brief asks for a simulated API delay of 200-300 ms, so the loading states
 // (spinner, infinite scroll guard) are visible even when Picsum answers instantly.
@@ -17,9 +18,7 @@ export class PhotoService {
 
   private http = inject(HttpClient); // Modern Dependency Injection χωρίς constructor
 
-  private favoritesSignal = signal<Photo[]>(this.loadFavorites());  // Signal for favorites state (replaces BehaviorSubject) Initialization direct from localStorage
-
-  favorites = this.favoritesSignal.asReadonly(); // Read-only version of signal to prevent directly manipulation from components
+  private favorites = inject(FavoritesService);
 
   // Photostream state lives here so it survives navigating to a photo and back
   private photosSignal = signal<Photo[]>([]);
@@ -66,64 +65,11 @@ export class PhotoService {
     );
   }
 
-  //Find photo by id
-  getFavoriteById(id: string): Photo | undefined {
-    return this.favoritesSignal().find(p => p.id === id);
-  }
-
-  // Any photo by id: the stored favorite if there is one, otherwise ask Picsum
+  // Any photo by id: the saved favorite if there is one, otherwise ask Picsum
   async getPhoto(id: string): Promise<Photo> {
-    const favorite = this.getFavoriteById(id);
+    const favorite = this.favorites.getById(id);
     if (favorite) return favorite;
     return firstValueFrom(this.http.get<Photo>(`https://picsum.photos/id/${encodeURIComponent(id)}/info`));
-  }
-
-  isFavorite(id: string): boolean {
-    return this.favoritesSignal().some(p => p.id === id);
-  }
-
-  // Returns true when the photo was added, false when it was removed
-  toggleFavorite(photo: Photo): boolean {
-    if (this.isFavorite(photo.id)) {
-      this.removeFromFavorites(photo.id);
-      return false;
-    }
-    this.addToFavorites(photo);
-    return true;
-  }
-
-  //Add to favorites
-  addToFavorites(photo: Photo) {
-    if (!this.isFavorite(photo.id)) { // Check if already in favorites
-      this.favoritesSignal.update(current => { // Update current 
-        const updated = [...current, photo];
-        this.saveFavorites(updated);
-        return updated;
-      })
-    }
-  }
-
-  //Remove photo from favorites
-  removeFromFavorites(photoId: string) {
-    this.favoritesSignal.update(current => {
-      const updated = current.filter(p => p.id !== photoId);
-      this.saveFavorites(updated);
-      return updated;
-    })
-  }
-
-  saveFavorites(favorites: Photo[]) {
-    localStorage.setItem('favorites_photos', JSON.stringify(favorites));
-  }
-
-  // Stored data may be corrupt or from an older version, so drop anything that is not a Photo
-  loadFavorites(): Photo[] {
-    try {
-      const parsed: unknown = JSON.parse(localStorage.getItem('favorites_photos') ?? '[]');
-      return Array.isArray(parsed) ? parsed.filter(isPhoto) : [];
-    } catch {
-      return [];
-    }
   }
 }
 
@@ -134,15 +80,4 @@ function randomInt(min: number, max: number): number {
 function simulateDelay(): Promise<void> {
   const { min, max } = SIMULATED_API_DELAY_MS;
   return new Promise(resolve => setTimeout(resolve, randomInt(min, max)));
-}
-
-function isPhoto(value: unknown): value is Photo {
-  if (typeof value !== 'object' || value === null) return false;
-  const p = value as Record<string, unknown>;
-  return typeof p['id'] === 'string'
-    && typeof p['author'] === 'string'
-    && typeof p['url'] === 'string'
-    && typeof p['download_url'] === 'string'
-    && typeof p['width'] === 'number'
-    && typeof p['height'] === 'number';
 }
