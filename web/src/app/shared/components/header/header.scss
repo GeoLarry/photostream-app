@@ -1,0 +1,38 @@
+.header-toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background-color: #3f51b5; // Material Primary Indigo
+}
+
+.nav-container {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.nav-btn {
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease-in-out;
+    color: rgba(255, 255, 255, 0.85);
+    background-color: transparent;
+
+    &:hover {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    // Active state applied dynamically by Angular Router
+    &.active-nav-btn {
+        background-color: #ffffff !important;
+        color: #3f51b5 !important;
+        font-weight: 700;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+    }
+}
