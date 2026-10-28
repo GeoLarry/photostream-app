@@ -1,0 +1,19 @@
+@if (photo(); as activePhoto) {
+  <div class="details-container">
+    <div class="photo-card-fullscreen">
+      <img [src]="activePhoto.download_url" [alt]="activePhoto.author" class="fullscreen-img">
+      
+      <div class="info-bar">
+        <div class="author-info">
+          <span class="label">Shot by</span>
+          <span class="author-name">{{ activePhoto.author }}</span>
+        </div>
+        
+        <button mat-flat-button color="warn" (click)="remove()" class="remove-btn">
+          <mat-icon>delete</mat-icon>
+          Remove from Favorites
+        </button>
+      </div>
+    </div>
+  </div>
+}

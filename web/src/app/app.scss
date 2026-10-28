@@ -1,0 +1,19 @@
+// Set the entire app to fit exactly the screen height and prevent the window from scrolling
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; // 100% of the viewport height
+    overflow: hidden; // Disables scrolling on the entire window
+}
+
+// The main container takes up the remaining space and handles scrolling
+.main-container {
+    flex: 1; // Takes up all available space below the header
+    overflow-y: auto; // Enables vertical scrolling ONLY within this container
+
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto; // Centering
+    padding: 20px 16px;
+    box-sizing: border-box;
+}

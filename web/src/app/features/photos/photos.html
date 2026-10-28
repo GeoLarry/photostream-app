@@ -1,0 +1,21 @@
+<div class="photos-grid">
+  @for (photo of photos(); track photo.id) {
+    <mat-card class="photo-card">
+      <img mat-card-image [src]="photo.download_url" [alt]="photo.author" loading="lazy">
+      
+      <div class="card-overlay">
+        <span class="author-name">{{ photo.author }}</span>
+        
+        <button mat-icon-button (click)="toggleFavorite(photo, $event)" class="fav-btn">
+          <mat-icon>{{ isFavorite(photo.id) ? 'favorite' : 'favorite_border' }}</mat-icon>
+        </button>
+      </div>
+    </mat-card>
+  }
+</div>
+
+<div #scrollAnchor class="scroll-anchor">
+  @if (isLoading()) {
+    <mat-spinner diameter="50"></mat-spinner>
+  }
+</div>
