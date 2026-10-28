@@ -97,7 +97,7 @@ Errors from services come back as `400 { "message": "..." }`.
 | `Frontend:BaseUrl` | `http://localhost:4200` | Base of the links in emails (`/confirm-email?token=...`) |
 | `EmailConfirmation:TokenLifetimeHours` | `24` | How long a confirmation link works |
 | `EmailConfirmation:ResendCooldownSeconds` | `60` | No new link is sent if the last one is younger |
-| `RateLimiting:Auth:PermitLimit`, `WindowMinutes` | `10`, `15` | Requests per client IP to login, register and the email endpoints |
+| `RateLimiting:Auth:PermitLimit`, `WindowMinutes` | `10` (`100` in Development), `15` | Requests per client IP to login, register and the email endpoints |
 
 Keep secrets out of `appsettings.json`. Locally:
 
