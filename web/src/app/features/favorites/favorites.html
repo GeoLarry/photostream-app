@@ -1,0 +1,16 @@
+<div class="favorites-grid">
+  @for (photo of favorites(); track photo.id) {
+    <mat-card class="photo-card" (click)="viewDetail(photo.id)">
+      <img mat-card-image [src]="photo.download_url" [alt]="photo.author" loading="lazy">
+      <div class="card-overlay">
+        <span class="author-name">{{ photo.author }}</span>
+      </div>
+    </mat-card>
+  } @empty {
+    <div class="empty-state">
+      <div class="empty-icon">❤️</div>
+      <h2>Your Favorites is empty</h2>
+      <p>Explore the photostream to save your favorite photos!</p>
+    </div>
+  }
+</div>
