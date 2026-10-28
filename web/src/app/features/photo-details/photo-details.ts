@@ -1,12 +1,13 @@
 import { Component, computed, effect, inject, input } from '@angular/core';
-import { MaterialModule } from '../../shared/modules/mareial.module';
+import { MatButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { PhotoService } from '../../shared/services/photo.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-photo-details',
-  imports: [MaterialModule],
+  imports: [MatButton, MatIcon],
   templateUrl: './photo-details.html',
   styleUrl: './photo-details.scss',
 })

@@ -1,12 +1,15 @@
 import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
-import { MaterialModule } from '../../shared/modules/mareial.module';
+import { MatIconButton } from '@angular/material/button';
+import { MatCard, MatCardImage } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { PhotoService } from '../../shared/services/photo.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Photo } from '../../models/photo.model';
 
 @Component({
   selector: 'app-photos',
-  imports: [MaterialModule],
+  imports: [MatCard, MatCardImage, MatIconButton, MatIcon, MatProgressSpinner],
   templateUrl: './photos.html',
   styleUrl: './photos.scss',
 })

@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
-import { MaterialModule } from '../../shared/modules/mareial.module';
+import { MatCard, MatCardImage } from '@angular/material/card';
 import { Router } from '@angular/router';
 import { PhotoService } from '../../shared/services/photo.service';
 
 @Component({
   selector: 'app-favorites',
-  imports: [MaterialModule],
+  imports: [MatCard, MatCardImage],
   templateUrl: './favorites.html',
   styleUrl: './favorites.scss',
 })
