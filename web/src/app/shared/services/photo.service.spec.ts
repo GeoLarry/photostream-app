@@ -141,6 +141,26 @@ describe('PhotoService', () => {
     expect(notFoundPhoto).toBeUndefined();
   });
 
+  it('should return a favorite from getPhoto without calling the API', async () => {
+    service.addToFavorites(mockPhoto);
+    expect(await service.getPhoto('101')).toEqual(mockPhoto);
+    httpMock.expectNone('https://picsum.photos/id/101/info');
+  });
+
+  it('should fetch a non-favorite photo from the Picsum info endpoint', async () => {
+    const loading = service.getPhoto('101');
+    httpMock.expectOne('https://picsum.photos/id/101/info').flush(mockPhoto);
+    expect(await loading).toEqual(mockPhoto);
+  });
+
+  it('should toggle a favorite on and off', () => {
+    expect(service.toggleFavorite(mockPhoto)).toBeTrue();
+    expect(service.isFavorite('101')).toBeTrue();
+
+    expect(service.toggleFavorite(mockPhoto)).toBeFalse();
+    expect(service.isFavorite('101')).toBeFalse();
+  });
+
   describe('loading favorites from localStorage', () => {
     // The service reads localStorage on construction, so each case needs a fresh instance
     function serviceWithStored(value: string): PhotoService {

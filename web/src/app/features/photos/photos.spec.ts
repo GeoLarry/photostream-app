@@ -6,6 +6,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { PhotoService } from '../../shared/services/photo.service';
 import { Photo } from '../../models/photo.model';
 import { IMAGE_LOADER } from '@angular/common';
+import { provideRouter } from '@angular/router';
 import { picsumLoader } from '../../shared/images/picsum-loader';
 
 describe('Photos', () => {
@@ -20,7 +21,8 @@ describe('Photos', () => {
         PhotoService,
         provideHttpClient(),
         provideHttpClientTesting(), // Modern functional testing HTTP client provider
-        { provide: IMAGE_LOADER, useValue: picsumLoader }
+        { provide: IMAGE_LOADER, useValue: picsumLoader },
+        provideRouter([])
       ]
     })
     .compileComponents();
@@ -60,6 +62,12 @@ describe('Photos', () => {
     });
 
     afterEach(() => localStorage.clear());
+
+    it('should link the card to the photo detail page', () => {
+      const link = fixture.nativeElement.querySelector('.card-link') as HTMLAnchorElement;
+      expect(link.getAttribute('href')).toBe('/photos/101');
+      expect(link.getAttribute('aria-label')).toBe('View photo by John Doe');
+    });
 
     it('should give the favorite button a state-aware accessible name', async () => {
       const button = () => fixture.nativeElement.querySelector('.fav-btn') as HTMLButtonElement;

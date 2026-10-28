@@ -1,13 +1,15 @@
 <div class="photos-grid">
   @for (photo of photos(); track photo.id) {
     <mat-card class="photo-card">
-      <img mat-card-image [ngSrc]="photo.id" width="600" height="400"
-        [loaderParams]="{ width: 600, height: 400 }" [priority]="$index < 3" [alt]="photo.author">
+      <a class="card-link" [routerLink]="['/photos', photo.id]" [attr.aria-label]="'View photo by ' + photo.author">
+        <img mat-card-image [ngSrc]="photo.id" width="600" height="400"
+          [loaderParams]="{ width: 600, height: 400 }" [priority]="$index < 3" [alt]="photo.author">
+      </a>
       
       <div class="card-overlay">
         <span class="author-name">{{ photo.author }}</span>
         
-        <button mat-icon-button (click)="toggleFavorite(photo, $event)" class="fav-btn"
+        <button mat-icon-button (click)="toggleFavorite(photo)" class="fav-btn"
           [attr.aria-label]="isFavorite(photo.id) ? 'Remove from favorites' : 'Add to favorites'"
           [attr.aria-pressed]="isFavorite(photo.id)">
           <mat-icon>{{ isFavorite(photo.id) ? 'favorite' : 'favorite_border' }}</mat-icon>

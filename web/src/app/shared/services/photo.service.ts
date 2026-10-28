@@ -71,9 +71,30 @@ export class PhotoService {
     return this.favoritesSignal().find(p => p.id === id);
   }
 
+  // Any photo by id: the stored favorite if there is one, otherwise ask Picsum
+  async getPhoto(id: string): Promise<Photo> {
+    const favorite = this.getFavoriteById(id);
+    if (favorite) return favorite;
+    return firstValueFrom(this.http.get<Photo>(`https://picsum.photos/id/${encodeURIComponent(id)}/info`));
+  }
+
+  isFavorite(id: string): boolean {
+    return this.favoritesSignal().some(p => p.id === id);
+  }
+
+  // Returns true when the photo was added, false when it was removed
+  toggleFavorite(photo: Photo): boolean {
+    if (this.isFavorite(photo.id)) {
+      this.removeFromFavorites(photo.id);
+      return false;
+    }
+    this.addToFavorites(photo);
+    return true;
+  }
+
   //Add to favorites
   addToFavorites(photo: Photo) {
-    if (!this.favoritesSignal().some(p => p.id === photo.id)) { // Check if already in favorites
+    if (!this.isFavorite(photo.id)) { // Check if already in favorites
       this.favoritesSignal.update(current => { // Update current 
         const updated = [...current, photo];
         this.saveFavorites(updated);

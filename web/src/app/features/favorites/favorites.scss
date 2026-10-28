@@ -33,6 +33,10 @@
     }
   }
 
+  .card-link {
+    display: block;
+  }
+
   img {
     width: 100%;
     height: auto;
@@ -52,6 +56,7 @@
   opacity: 0;
   transition: opacity 0.3s ease;
   color: white;
+  pointer-events: none; // Clicks on the overlay go through to the card link
 }
 
 .author-name {
