@@ -8,13 +8,15 @@ import { CurrentUser } from '../../../models/auth.model';
 describe('Header', () => {
   let fixture: ComponentFixture<Header>;
   const currentUser = signal<CurrentUser | null>(null);
-  let auth: { currentUser: typeof currentUser; logout: jasmine.Spy };
+  const permissions = signal<string[]>([]);
+  let auth: { currentUser: typeof currentUser; hasPermission: (p: string) => boolean; logout: jasmine.Spy };
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
   beforeEach(async () => {
     currentUser.set(null);
-    auth = { currentUser, logout: jasmine.createSpy('logout') };
+    permissions.set([]);
+    auth = { currentUser, hasPermission: p => permissions().includes(p), logout: jasmine.createSpy('logout') };
     await TestBed.configureTestingModule({
       imports: [Header],
       providers: [provideZonelessChangeDetection(), provideRouter([]), { provide: AuthService, useValue: auth }],
@@ -44,5 +46,17 @@ describe('Header', () => {
 
     expect(auth.logout).toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith('/');
+  });
+
+  it('shows the Admin link only to users who may view users', () => {
+    const jane: CurrentUser = { id: 1, username: 'jane', email: 'j@example.com', firstName: null, lastName: null, roles: [], permissions: [] };
+    currentUser.set(jane);
+    fixture.detectChanges();
+    expect(text()).not.toContain('Admin');
+
+    permissions.set(['Users.View']);
+    fixture.detectChanges();
+    const admin = (fixture.nativeElement as HTMLElement).querySelector('a[href="/admin/users"]');
+    expect(admin?.textContent).toContain('Admin');
   });
 });
