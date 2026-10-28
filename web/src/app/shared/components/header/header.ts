@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatToolbar } from '@angular/material/toolbar';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -17,4 +18,13 @@ import { MatToolbar } from '@angular/material/toolbar';
 })
 export class Header {
 
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
+  user = this.auth.currentUser;
+
+  logout() {
+    this.auth.logout();
+    this.router.navigateByUrl('/');
+  }
 }

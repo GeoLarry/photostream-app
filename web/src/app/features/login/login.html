@@ -1,0 +1,46 @@
+<div class="auth-page">
+  <mat-card class="auth-card" appearance="outlined">
+    <h1>Log in</h1>
+    <p class="auth-intro">Welcome back. Log in to see your favorites.</p>
+
+    @if (error()) {
+      <div class="auth-error" role="alert">
+        {{ error() }}
+        @if (needsConfirmation()) {
+          <div class="auth-actions">
+            <a mat-button routerLink="/check-email" [queryParams]="resendQueryParams()">Resend confirmation email</a>
+          </div>
+        }
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-form-field appearance="outline">
+        <mat-label>Username or email</mat-label>
+        <input matInput formControlName="username" autocomplete="username" />
+        @if (form.controls.username.hasError('required')) {
+          <mat-error>Enter your username or email.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="current-password" />
+        @if (form.controls.password.hasError('required')) {
+          <mat-error>Enter your password.</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="auth-actions">
+        <button mat-flat-button type="submit" [disabled]="submitting()">Log in</button>
+        @if (submitting()) {
+          <mat-spinner diameter="24" aria-label="Logging in"></mat-spinner>
+        }
+      </div>
+    </form>
+
+    <p class="auth-footer">
+      No account yet? <a routerLink="/register">Sign up</a>
+    </p>
+  </mat-card>
+</div>

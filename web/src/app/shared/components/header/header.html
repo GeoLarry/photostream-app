@@ -8,5 +8,15 @@
         <a mat-flat-button routerLink="/favorites" routerLinkActive="active-nav-btn" class="nav-btn">
             ❤️ Favorites
         </a>
+
+        <div class="auth-nav">
+            @if (user(); as user) {
+                <span class="user-name" [attr.aria-label]="'Signed in as ' + user.username">{{ user.firstName || user.username }}</span>
+                <button mat-flat-button class="nav-btn" type="button" (click)="logout()">Log out</button>
+            } @else {
+                <a mat-flat-button routerLink="/login" routerLinkActive="active-nav-btn" class="nav-btn">Log in</a>
+                <a mat-flat-button routerLink="/register" routerLinkActive="active-nav-btn" class="nav-btn">Sign up</a>
+            }
+        </div>
     </div>
 </mat-toolbar>

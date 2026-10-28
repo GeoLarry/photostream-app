@@ -2,6 +2,8 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -9,7 +11,9 @@ describe('App', () => {
       imports: [App],
       providers: [
         provideZonelessChangeDetection(),
-        provideRouter([])
+        provideRouter([]),
+        provideHttpClient(), // the header asks AuthService who is signed in
+        provideHttpClientTesting()
       ]
     }).compileComponents();
   });
