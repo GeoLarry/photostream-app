@@ -31,3 +31,8 @@ appsettings.*.local.json
 ## OS
 .DS_Store
 Thumbs.db
+
+## AI assistant instructions (kept local, not in the repo)
+CLAUDE.md
+**/CLAUDE.md
+.claude/
