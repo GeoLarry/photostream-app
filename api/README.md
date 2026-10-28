@@ -1,10 +1,8 @@
-# dotnet-auth-starter
+# Photostream API
 
-A .NET 10 Minimal API starter with everything an app needs before its first real feature: sign-up and login with JWT, users, roles and fine-grained permissions, a real database and seeded demo data.
+.NET 10 Minimal API for Photostream, built from the [dotnet-auth-starter](https://github.com/GeoLarry/dotnet-auth-starter) template: sign-up and login with JWT, users, roles and fine-grained permissions, a real database and seeded demo data.
 
-Use it as a **GitHub template**: every new project starts from here and only adds its own features.
-
-[![CI](https://github.com/GeoLarry/dotnet-auth-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/GeoLarry/dotnet-auth-starter/actions/workflows/ci.yml)
+All commands below run from this `api/` folder.
 
 ## What's inside
 
@@ -115,19 +113,6 @@ dotnet ef migrations add InitialCreate --project src/Starter.Infrastructure --st
 
 From then on the app runs `Migrate()` on start. Delete any old `app.db` first, since it was created without migration history. Migrations are provider-specific: if you change provider later, generate them again for the new one.
 
-## Starting a new app from this template
+## Fixes from the starter
 
-1. On GitHub: **Use this template → Create a new repository**.
-2. Rename the solution and projects if you like (`Starter.*` → `YourApp.*`).
-3. Add your modules to `PermissionModule` (e.g. `Contacts`, `Workouts`).
-4. Add entities to `AppDbContext`, a service in Infrastructure, an endpoints file in `Starter.Api/Endpoints`, and map it in `Program.cs`.
-5. Protect the endpoints with `.RequirePermission(...)` and give the `User` role the permissions regular users need (in `DbInitializer`).
-6. Add tests next to the existing ones.
-
-## Pulling later fixes from the starter into an app
-
-```bash
-git remote add starter https://github.com/GeoLarry/dotnet-auth-starter.git
-git fetch starter
-git merge starter/main --allow-unrelated-histories   # first time only needs the flag
-```
+Improvements made later in `dotnet-auth-starter` are ported here by hand, in small pull requests, so this app keeps full control over its own code.
