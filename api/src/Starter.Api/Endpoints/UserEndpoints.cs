@@ -25,6 +25,15 @@ public static class UserEndpoints
         })
         .RequirePermission(PermissionModule.Users, PermissionAction.View);
 
+        group.MapGet("/{id:int}/favorites", async (int id, IUserService userService, IFavoriteService favoriteService, CancellationToken ct) =>
+        {
+            if (await userService.GetUserByIdAsync(id, ct) is null) return NotFound();
+
+            IReadOnlyList<FavoriteResponse> favorites = await favoriteService.GetFavoritesAsync(id, ct);
+            return Results.Ok(favorites);
+        })
+        .RequirePermission(PermissionModule.Users, PermissionAction.View);
+
         group.MapPost("/", async (CreateUserRequest request, IUserService userService, CancellationToken ct) =>
         {
             UserResponse user = await userService.CreateUserAsync(request, ct);
