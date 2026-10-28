@@ -55,7 +55,7 @@ export class Photos implements OnInit, AfterViewInit, OnDestroy {
       this.photos.update(current => [...current, ...newPhotos]); //Append using signals updte
     } catch (error) {
       console.error('Failed to load photos', error);
-      this, this.snackBar.open('Failed to load photos.', 'Close', { duration: 2000 })
+      this.snackBar.open('Failed to load photos.', 'Close', { duration: 2000 })
     } finally {
       this.isLoading.set(false);
     }
