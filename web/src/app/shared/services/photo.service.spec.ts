@@ -19,6 +19,8 @@ describe('PhotoService', () => {
   };
 
   beforeEach(() => {
+    // Clear localStorage before the service reads it, to guarantee an isolated state
+    localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
         PhotoService,
@@ -29,12 +31,10 @@ describe('PhotoService', () => {
 
     service = TestBed.inject(PhotoService);
     httpMock = TestBed.inject(HttpTestingController);
-    
-    // Clear localStorage before each test to guarantee an isolated state
-    localStorage.clear();
   });
 
   afterEach(() => {
+    localStorage.clear();
     // Verify that no mismatched or outstanding HTTP requests remain open
     httpMock.verify();
   });
