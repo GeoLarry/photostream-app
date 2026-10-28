@@ -1,0 +1,33 @@
+## IDEs
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.user
+*.userosscache
+
+## Build output
+[Bb]in/
+[Oo]bj/
+[Ll]ogs/
+artifacts/
+TestResults/
+
+## NuGet
+*.nupkg
+*.snupkg
+**/packages/
+
+## Local databases (SQLite files are created on first run)
+*.db
+*.db-shm
+*.db-wal
+
+## Secrets and local overrides
+appsettings.*.local.json
+.env
+
+## OS
+.DS_Store
+Thumbs.db

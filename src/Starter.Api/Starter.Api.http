@@ -1,0 +1,57 @@
+### Works with the VS Code "REST Client" extension and Visual Studio / Rider.
+@baseUrl = http://localhost:5080
+
+### 1. Log in as the seeded admin (Development password from appsettings.Development.json)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Admin123!"
+}
+
+### The token from the login response, used by the requests below
+@token = {{login.response.body.token}}
+
+### 2. Who am I (roles + permissions)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{token}}
+
+### 3. Register a new user (gets the default "User" role)
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "jane.doe",
+  "email": "jane.doe@example.com",
+  "password": "Password1",
+  "firstName": "Jane",
+  "lastName": "Doe"
+}
+
+### 4. Users, paged and searchable
+GET {{baseUrl}}/api/users?pageNumber=1&pageSize=10&search=jo
+Authorization: Bearer {{token}}
+
+### 5. Roles
+GET {{baseUrl}}/api/roles
+Authorization: Bearer {{token}}
+
+### 6. Permission catalog for a role editor
+GET {{baseUrl}}/api/permissions
+Authorization: Bearer {{token}}
+
+### 7. Create a role
+POST {{baseUrl}}/api/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "User Manager",
+  "description": "Can view and edit users",
+  "permissions": [
+    { "module": "Users", "action": "View" },
+    { "module": "Users", "action": "Edit" }
+  ]
+}
