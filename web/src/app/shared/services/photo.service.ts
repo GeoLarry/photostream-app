@@ -61,8 +61,24 @@ export class PhotoService {
     localStorage.setItem('favorites_photos', JSON.stringify(favorites));
   }
 
+  // Stored data may be corrupt or from an older version, so drop anything that is not a Photo
   loadFavorites(): Photo[] {
-    const stored = localStorage.getItem('favorites_photos');
-    return stored ? JSON.parse(stored) : [];
+    try {
+      const parsed: unknown = JSON.parse(localStorage.getItem('favorites_photos') ?? '[]');
+      return Array.isArray(parsed) ? parsed.filter(isPhoto) : [];
+    } catch {
+      return [];
+    }
   }
+}
+
+function isPhoto(value: unknown): value is Photo {
+  if (typeof value !== 'object' || value === null) return false;
+  const p = value as Record<string, unknown>;
+  return typeof p['id'] === 'string'
+    && typeof p['author'] === 'string'
+    && typeof p['url'] === 'string'
+    && typeof p['download_url'] === 'string'
+    && typeof p['width'] === 'number'
+    && typeof p['height'] === 'number';
 }

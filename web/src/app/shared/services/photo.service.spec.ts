@@ -102,4 +102,30 @@ describe('PhotoService', () => {
     const notFoundPhoto = service.getFavoriteById('999');
     expect(notFoundPhoto).toBeUndefined();
   });
+
+  describe('loading favorites from localStorage', () => {
+    // The service reads localStorage on construction, so each case needs a fresh instance
+    function serviceWithStored(value: string): PhotoService {
+      localStorage.setItem('favorites_photos', value);
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [PhotoService, provideHttpClient(), provideHttpClientTesting()]
+      });
+      httpMock = TestBed.inject(HttpTestingController);
+      return TestBed.inject(PhotoService);
+    }
+
+    it('should start empty when the stored JSON is corrupt', () => {
+      expect(serviceWithStored('{not json').favorites()).toEqual([]);
+    });
+
+    it('should start empty when the stored value is not an array', () => {
+      expect(serviceWithStored('{"id":"101"}').favorites()).toEqual([]);
+    });
+
+    it('should keep only entries with the Photo shape', () => {
+      const stored = JSON.stringify([mockPhoto, null, 'x', { id: 7, author: 'A' }, { ...mockPhoto, id: '102', width: '200' }]);
+      expect(serviceWithStored(stored).favorites()).toEqual([mockPhoto]);
+    });
+  });
 });
