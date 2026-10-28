@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<Favorite> Favorites => Set<Favorite>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,6 +63,22 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             // and enum members can be reordered without a data migration.
             permission.Property(p => p.Module).HasConversion<string>().HasMaxLength(50);
             permission.Property(p => p.Action).HasConversion<string>().HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<Favorite>(favorite =>
+        {
+            favorite.Property(f => f.PhotoId).HasMaxLength(FavoriteLimits.PhotoIdLength);
+            favorite.Property(f => f.Author).HasMaxLength(FavoriteLimits.AuthorLength);
+            favorite.Property(f => f.Url).HasMaxLength(FavoriteLimits.UrlLength);
+            favorite.Property(f => f.DownloadUrl).HasMaxLength(FavoriteLimits.UrlLength);
+
+            // A photo is a favorite at most once per user.
+            favorite.HasIndex(f => new { f.UserId, f.PhotoId }).IsUnique();
+
+            favorite.HasOne(f => f.User)
+                .WithMany()
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

@@ -43,6 +43,19 @@ public interface IRoleService
     Task<RoleDeleteResult> DeleteRoleAsync(int id, CancellationToken ct = default);
 }
 
+public interface IFavoriteService
+{
+    // Newest first.
+    Task<IReadOnlyList<FavoriteResponse>> GetFavoritesAsync(int userId, CancellationToken ct = default);
+
+    // Idempotent: adding a photo that is already a favorite returns the existing one.
+    // Throws ValidationFailedException on invalid input.
+    Task<FavoriteResponse> AddFavoriteAsync(int userId, string photoId, AddFavoriteRequest request, CancellationToken ct = default);
+
+    // false if the photo was not a favorite.
+    Task<bool> RemoveFavoriteAsync(int userId, string photoId, CancellationToken ct = default);
+}
+
 public interface IPermissionService
 {
     // Union of the permissions of all the user's roles, read from the database on every call,

@@ -67,9 +67,14 @@ public static class DbInitializer
             new Role
             {
                 Name = SystemRoles.User,
-                Description = "Default role for new sign-ups. Add your app's permissions here.",
+                Description = "Default role for new sign-ups: keeps their own favorites.",
                 IsSystemRole = true,
-                Permissions = []
+                Permissions =
+                [
+                    new RolePermission { Module = PermissionModule.Favorites, Action = PermissionAction.View },
+                    new RolePermission { Module = PermissionModule.Favorites, Action = PermissionAction.Create },
+                    new RolePermission { Module = PermissionModule.Favorites, Action = PermissionAction.Delete }
+                ]
             });
 
         await db.SaveChangesAsync(ct);

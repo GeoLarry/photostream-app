@@ -38,6 +38,8 @@ dotnet run --project src/Starter.Api
 
 API on http://localhost:5080, API reference at http://localhost:5080/scalar/v1. Development admin: `admin` / `Admin123!`.
 
+Roles are seeded only into an empty database. If you ran the API before favorites existed, delete `api/src/Starter.Api/app.db` once so the `User` role gets the `Favorites` permissions.
+
 Frontend (requires Node.js 22):
 
 ```bash

@@ -8,6 +8,9 @@ public enum PermissionModule
     Users,
     Roles,
 
+    // Each user's own saved photos.
+    Favorites,
+
     // System-level settings, reserved for the Super Admin role.
     System
 }

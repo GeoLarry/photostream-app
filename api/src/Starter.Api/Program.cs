@@ -75,8 +75,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapRoleEndpoints();
-
-// Add your app's endpoints here, e.g. app.MapContactEndpoints();
+app.MapFavoriteEndpoints();
 
 app.Run();
 
