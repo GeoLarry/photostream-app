@@ -1,7 +1,9 @@
 @if (photo(); as activePhoto) {
   <div class="details-container">
     <div class="photo-card-fullscreen">
-      <img [src]="activePhoto.download_url" [alt]="activePhoto.author" class="fullscreen-img">
+      <img [ngSrc]="activePhoto.id" width="1200" [height]="imageHeight(activePhoto)"
+        [loaderParams]="{ width: 1200, height: imageHeight(activePhoto) }" priority
+        [alt]="activePhoto.author" class="fullscreen-img">
       
       <div class="info-bar">
         <div class="author-info">

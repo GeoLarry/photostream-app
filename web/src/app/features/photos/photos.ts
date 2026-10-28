@@ -6,10 +6,11 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { PhotoService } from '../../shared/services/photo.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Photo } from '../../models/photo.model';
+import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'app-photos',
-  imports: [MatCard, MatCardImage, MatIconButton, MatIcon, MatProgressSpinner],
+  imports: [NgOptimizedImage, MatCard, MatCardImage, MatIconButton, MatIcon, MatProgressSpinner],
   templateUrl: './photos.html',
   styleUrl: './photos.scss',
 })

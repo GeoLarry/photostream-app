@@ -21,8 +21,13 @@
 }
 
 .fullscreen-img {
-    width: 100%;
+    // Scale down to fit, never stretch: width and height follow the photo's aspect ratio
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
     max-height: 60vh;
+    margin: 0 auto;
     object-fit: contain;
     background-color: #121212; // Dark background to make the photo pop
 }

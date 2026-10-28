@@ -2,10 +2,11 @@ import { Component, inject } from '@angular/core';
 import { MatCard, MatCardImage } from '@angular/material/card';
 import { Router } from '@angular/router';
 import { PhotoService } from '../../shared/services/photo.service';
+import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'app-favorites',
-  imports: [MatCard, MatCardImage],
+  imports: [NgOptimizedImage, MatCard, MatCardImage],
   templateUrl: './favorites.html',
   styleUrl: './favorites.scss',
 })

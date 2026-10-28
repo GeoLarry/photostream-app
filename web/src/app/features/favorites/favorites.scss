@@ -24,7 +24,8 @@
 
   img {
     width: 100%;
-    height: 320px;
+    height: auto;
+    aspect-ratio: 3 / 2; // Matches the 600x400 size requested from Picsum
     object-fit: cover;
     display: block;
   }
