@@ -3,6 +3,10 @@ import { Photo } from '../../models/photo.model';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
+// The original brief asks for a simulated API delay of 200-300 ms, so the loading states
+// (spinner, infinite scroll guard) are visible even when Picsum answers instantly.
+const SIMULATED_API_DELAY_MS = { min: 200, max: 300 };
+
 @Injectable({
   providedIn: 'root',
 })
@@ -17,7 +21,8 @@ export class PhotoService {
   // Using async/Promise to match Signals control flow
   async getRandomPhotos(count: number): Promise<Photo[]> {
     const randomPage = Math.floor(Math.random() * 10) + 1;
-    const randomDelay = Math.floor(Math.random() * 101) + 200;
+    const { min, max } = SIMULATED_API_DELAY_MS;
+    const randomDelay = min + Math.floor(Math.random() * (max - min + 1));
 
     //Using firstValueFrom to convert http Observable into Promise
     const data = await firstValueFrom(
