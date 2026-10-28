@@ -3,10 +3,13 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { PhotoService } from './photo.service';
 import { Photo } from '../../models/photo.model';
+import { FavoritesService } from './favorites.service';
+import { FakeFavoritesService } from '../testing/fake-favorites.service';
 
 describe('PhotoService', () => {
   let service: PhotoService;
   let httpMock: HttpTestingController;
+  let favorites: FakeFavoritesService;
 
   // Mock photo data to use across multiple tests
   const mockPhoto: Photo = {
@@ -19,11 +22,11 @@ describe('PhotoService', () => {
   };
 
   beforeEach(() => {
-    // Clear localStorage before the service reads it, to guarantee an isolated state
-    localStorage.clear();
+    favorites = new FakeFavoritesService();
     TestBed.configureTestingModule({
       providers: [
         PhotoService,
+        { provide: FavoritesService, useValue: favorites },
         provideHttpClient(),
         provideHttpClientTesting() // Modern functional testing HTTP client provider
       ]
@@ -34,7 +37,6 @@ describe('PhotoService', () => {
   });
 
   afterEach(() => {
-    localStorage.clear();
     // Verify that no mismatched or outstanding HTTP requests remain open
     httpMock.verify();
   });
@@ -102,47 +104,8 @@ describe('PhotoService', () => {
     });
   });
 
-  // Test 3: Verifies managing favorite list reactively and local storage synchronization using Signals
-  it('should add a photo to favorites and update localStorage', () => {
-    service.addToFavorites(mockPhoto);
-
-    // Assert Signal value directly by calling it as a function
-    const currentFavorites = service.favorites();
-    expect(currentFavorites.length).toBe(1);
-    expect(currentFavorites[0].id).toBe('101');
-
-    // Assert LocalStorage persistence works
-    const stored = localStorage.getItem('favorites_photos');
-    expect(stored).toBeTruthy();
-    expect(JSON.parse(stored!)[0].id).toBe('101');
-  });
-
-  // Test 4: Verifies removal mechanism from favorites array using Signals
-  it('should remove a photo from favorites', () => {
-    // Arrange state with one favorited item
-    service.addToFavorites(mockPhoto);
-    
-    // Act
-    service.removeFromFavorites('101');
-
-    // Assert using the synchronous read of the Signal
-    expect(service.favorites().length).toBe(0);
-  });
-
-  // Test 5: Verifies fetching a singular photo by its unique ID
-  it('should find and return a specific favorite photo by its id', () => {
-    service.addToFavorites(mockPhoto);
-
-    const foundPhoto = service.getFavoriteById('101');
-    expect(foundPhoto).toBeDefined();
-    expect(foundPhoto?.author).toBe('John Doe');
-
-    const notFoundPhoto = service.getFavoriteById('999');
-    expect(notFoundPhoto).toBeUndefined();
-  });
-
-  it('should return a favorite from getPhoto without calling the API', async () => {
-    service.addToFavorites(mockPhoto);
+  it('should return a saved favorite from getPhoto without calling Picsum', async () => {
+    favorites.list.set([mockPhoto]);
     expect(await service.getPhoto('101')).toEqual(mockPhoto);
     httpMock.expectNone('https://picsum.photos/id/101/info');
   });
@@ -151,39 +114,5 @@ describe('PhotoService', () => {
     const loading = service.getPhoto('101');
     httpMock.expectOne('https://picsum.photos/id/101/info').flush(mockPhoto);
     expect(await loading).toEqual(mockPhoto);
-  });
-
-  it('should toggle a favorite on and off', () => {
-    expect(service.toggleFavorite(mockPhoto)).toBeTrue();
-    expect(service.isFavorite('101')).toBeTrue();
-
-    expect(service.toggleFavorite(mockPhoto)).toBeFalse();
-    expect(service.isFavorite('101')).toBeFalse();
-  });
-
-  describe('loading favorites from localStorage', () => {
-    // The service reads localStorage on construction, so each case needs a fresh instance
-    function serviceWithStored(value: string): PhotoService {
-      localStorage.setItem('favorites_photos', value);
-      TestBed.resetTestingModule();
-      TestBed.configureTestingModule({
-        providers: [PhotoService, provideHttpClient(), provideHttpClientTesting()]
-      });
-      httpMock = TestBed.inject(HttpTestingController);
-      return TestBed.inject(PhotoService);
-    }
-
-    it('should start empty when the stored JSON is corrupt', () => {
-      expect(serviceWithStored('{not json').favorites()).toEqual([]);
-    });
-
-    it('should start empty when the stored value is not an array', () => {
-      expect(serviceWithStored('{"id":"101"}').favorites()).toEqual([]);
-    });
-
-    it('should keep only entries with the Photo shape', () => {
-      const stored = JSON.stringify([mockPhoto, null, 'x', { id: 7, author: 'A' }, { ...mockPhoto, id: '102', width: '200' }]);
-      expect(serviceWithStored(stored).favorites()).toEqual([mockPhoto]);
-    });
   });
 });

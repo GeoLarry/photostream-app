@@ -4,21 +4,32 @@ import { Photos } from './photos';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { PhotoService } from '../../shared/services/photo.service';
+import { FavoritesService } from '../../shared/services/favorites.service';
+import { FakeFavoritesService } from '../../shared/testing/fake-favorites.service';
 import { Photo } from '../../models/photo.model';
 import { IMAGE_LOADER } from '@angular/common';
 import { provideRouter } from '@angular/router';
 import { picsumLoader } from '../../shared/images/picsum-loader';
+import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material/snack-bar';
+import { EMPTY } from 'rxjs';
 
 describe('Photos', () => {
   let component: Photos;
   let fixture: ComponentFixture<Photos>;
+  let favorites: FakeFavoritesService;
+  let snackBar: jasmine.SpyObj<MatSnackBar>;
 
   beforeEach(async () => {
-    localStorage.clear(); // PhotoService reads favorites on creation
+    favorites = new FakeFavoritesService();
+    // A real snackbar keeps a timer running that whenStable() would wait for
+    snackBar = jasmine.createSpyObj<MatSnackBar>('MatSnackBar', ['open']);
+    snackBar.open.and.returnValue({ onAction: () => EMPTY } as unknown as MatSnackBarRef<TextOnlySnackBar>);
     await TestBed.configureTestingModule({
       imports: [Photos],
       providers: [
         PhotoService,
+        { provide: FavoritesService, useValue: favorites },
+        { provide: MatSnackBar, useValue: snackBar },
         provideHttpClient(),
         provideHttpClientTesting(), // Modern functional testing HTTP client provider
         { provide: IMAGE_LOADER, useValue: picsumLoader },
@@ -61,8 +72,6 @@ describe('Photos', () => {
       fixture.detectChanges();
     });
 
-    afterEach(() => localStorage.clear());
-
     it('should link the card to the photo detail page', () => {
       const link = fixture.nativeElement.querySelector('.card-link') as HTMLAnchorElement;
       expect(link.getAttribute('href')).toBe('/photos/101');
@@ -75,10 +84,23 @@ describe('Photos', () => {
       expect(button().getAttribute('aria-pressed')).toBe('false');
 
       button().click();
+      await fixture.whenStable();
       fixture.detectChanges();
 
       expect(button().getAttribute('aria-label')).toBe('Remove from favorites');
       expect(button().getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('should leave the photo unsaved for a visitor', async () => {
+      favorites.signedIn = false;
+      const button = () => fixture.nativeElement.querySelector('.fav-btn') as HTMLButtonElement;
+
+      button().click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(button().getAttribute('aria-pressed')).toBe('false');
+      expect(snackBar.open).toHaveBeenCalledWith('Log in to save favorites', 'Log in', jasmine.any(Object));
     });
   });
 });

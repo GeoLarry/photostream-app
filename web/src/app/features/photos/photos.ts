@@ -4,6 +4,8 @@ import { MatCard, MatCardImage } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { PhotoService } from '../../shared/services/photo.service';
+import { FavoritesService } from '../../shared/services/favorites.service';
+import { FavoriteActions } from '../../shared/services/favorite-actions';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Photo } from '../../models/photo.model';
 import { NgOptimizedImage } from '@angular/common';
@@ -18,6 +20,8 @@ import { RouterLink } from '@angular/router';
 export class Photos implements OnInit, AfterViewInit, OnDestroy {
 
   private photoService = inject(PhotoService)
+  private favorites = inject(FavoritesService)
+  private favoriteActions = inject(FavoriteActions)
   private snackBar = inject(MatSnackBar)
   private scrollAnchor = viewChild<ElementRef<HTMLDivElement>>('scrollAnchor');
 
@@ -37,13 +41,12 @@ export class Photos implements OnInit, AfterViewInit, OnDestroy {
   }
 
   isFavorite(photoId: string): boolean {
-    return this.photoService.isFavorite(photoId);
+    return this.favorites.isFavorite(photoId);
   }
 
-  // Toggle favorite photo status
+  // Saves to the signed-in user's favorites, or asks a visitor to log in
   toggleFavorite(photo: Photo) {
-    const added = this.photoService.toggleFavorite(photo);
-    this.snackBar.open(added ? 'Added to Favorites! ❤️' : 'Removed from Favorites!', 'Close', { duration: 2000 })
+    this.favoriteActions.toggle(photo);
   }
 
   // Load more photos asynchronously from photoService

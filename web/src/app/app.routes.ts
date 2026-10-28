@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './shared/guards/auth.guard';
 import { guestGuard } from './shared/guards/guest.guard';
 
 export const routes: Routes = [
@@ -8,7 +9,9 @@ export const routes: Routes = [
         loadComponent: () => import('./features/photos/photos').then(m => m.Photos)
     },
     {
+        // Favorites belong to an account
         path: 'favorites',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/favorites/favorites').then(m => m.Favorites)
     },
     {

@@ -4,8 +4,9 @@ import { Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { PhotoService } from '../../shared/services/photo.service';
+import { FavoritesService } from '../../shared/services/favorites.service';
+import { FavoriteActions } from '../../shared/services/favorite-actions';
 import { Photo } from '../../models/photo.model';
 import { scaledHeight } from '../../shared/images/picsum-loader';
 
@@ -21,7 +22,8 @@ export class PhotoDetails {
   private router = inject(Router);
   private location = inject(Location);
   private photoService = inject(PhotoService);
-  private snackBar = inject(MatSnackBar);
+  private favorites = inject(FavoritesService);
+  private favoriteActions = inject(FavoriteActions);
 
   // Signal Input: Automatically bound from the ':id' route parameter
   id = input.required<string>();
@@ -32,7 +34,7 @@ export class PhotoDetails {
     loader: ({ params: id }) => this.photoService.getPhoto(id),
   });
 
-  isFavorite = computed(() => this.photoService.isFavorite(this.id()));
+  isFavorite = computed(() => this.favorites.isFavorite(this.id()));
 
   // Detail image is requested about 1200px wide, keeping the photo's aspect ratio
   imageHeight(photo: Photo): number {
@@ -41,8 +43,7 @@ export class PhotoDetails {
 
   // Stays on the page either way, so the user can undo right away
   toggleFavorite(photo: Photo) {
-    const added = this.photoService.toggleFavorite(photo);
-    this.snackBar.open(added ? 'Added to Favorites! ❤️' : 'Removed from Favorites!', 'Close', { duration: 2000 })
+    this.favoriteActions.toggle(photo);
   }
 
   // Go back within the app; when the page was opened directly, fall back to the photostream
