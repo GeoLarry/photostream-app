@@ -19,6 +19,10 @@ public class User
     // and any token they already hold stops passing authorization.
     public bool IsActive { get; set; } = true;
 
+    // null until the user opens the link in the confirmation email. Self-registered users
+    // cannot sign in before that. Accounts created by an admin or the seeder start confirmed.
+    public DateTime? EmailConfirmedAtUtc { get; set; }
+
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
 

@@ -1,0 +1,9 @@
+# Local development services. Start with: docker compose up -d
+services:
+  # Catches every email the API sends. Inbox at http://localhost:8025, SMTP on localhost:1025.
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    restart: unless-stopped

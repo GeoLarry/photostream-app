@@ -75,6 +75,8 @@ public class UserService(AppDbContext db) : IUserService
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             FirstName = InputRules.Clean(request.FirstName),
             LastName = InputRules.Clean(request.LastName),
+            // The admin vouches for the address, so no confirmation email is needed.
+            EmailConfirmedAtUtc = DateTime.UtcNow,
             UserRoles = roleIds.Select(roleId => new UserRole { RoleId = roleId }).ToList()
         };
 
@@ -149,6 +151,19 @@ public class UserService(AppDbContext db) : IUserService
         return true;
     }
 
+    public async Task<bool> ConfirmEmailAsync(int id, CancellationToken ct = default)
+    {
+        User? user = await db.Users.FirstOrDefaultAsync(u => u.Id == id, ct);
+        if (user is null) return false;
+
+        user.EmailConfirmedAtUtc ??= DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+
+        // Links that were already emailed are no longer needed.
+        await db.EmailConfirmationTokens.Where(t => t.UserId == id).ExecuteDeleteAsync(ct);
+        return true;
+    }
+
     public Task<bool> IsProtectedUserAsync(int id, CancellationToken ct = default) =>
         db.UserRoles.AnyAsync(ur => ur.UserId == id && !ur.Role.IsAssignable, ct);
 
@@ -185,6 +200,7 @@ public class UserService(AppDbContext db) : IUserService
         user.FirstName,
         user.LastName,
         user.IsActive,
+        user.EmailConfirmedAtUtc is not null,
         user.CreatedAtUtc,
         user.UserRoles
             .Select(ur => new RoleSummaryDto(ur.Role.Id, ur.Role.Name))

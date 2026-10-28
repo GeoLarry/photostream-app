@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<Favorite> Favorites => Set<Favorite>();
+    public DbSet<EmailConfirmationToken> EmailConfirmationTokens => Set<EmailConfirmationToken>();
 
     // Every DateTime is UTC. SQLite (and SQL Server datetime2) keep no time zone, so values would come
     // back as Unspecified and be serialized without "Z", and browsers would read them as local time.
@@ -86,6 +87,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             favorite.HasOne(f => f.User)
                 .WithMany()
                 .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EmailConfirmationToken>(token =>
+        {
+            // SHA-256 as lowercase hex.
+            token.Property(t => t.TokenHash).HasMaxLength(64);
+            token.HasIndex(t => t.TokenHash).IsUnique();
+
+            token.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

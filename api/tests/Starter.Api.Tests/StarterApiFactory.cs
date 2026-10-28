@@ -4,9 +4,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Time.Testing;
 using Starter.Core.Contracts;
+using Starter.Core.Interfaces;
 
 namespace Starter.Api.Tests;
 
@@ -20,6 +25,12 @@ public class StarterApiFactory : WebApplicationFactory<Program>
     {
         Converters = { new JsonStringEnumConverter() }
     };
+
+    // Emails the app sent, so tests can follow confirmation links.
+    public FakeEmailSender Emails { get; } = new();
+
+    // Starts at the real time (JWTs are still checked against it) and can be moved forward to expire links.
+    public FakeTimeProvider Clock { get; } = new(DateTimeOffset.UtcNow);
 
     private readonly string _connectionString = $"Data Source=file:starter-tests-{Guid.NewGuid():N}?mode=memory&cache=shared";
 
@@ -48,8 +59,18 @@ public class StarterApiFactory : WebApplicationFactory<Program>
                 ["Jwt:Secret"] = "test-only-secret-key-that-is-long-enough-0123456789",
                 ["Seed:AdminUsername"] = AdminUsername,
                 ["Seed:AdminPassword"] = AdminPassword,
-                ["Seed:DemoUsers"] = "0"
+                ["Seed:DemoUsers"] = "0",
+                ["Email:Host"] = "",
+                ["RateLimiting:Auth:PermitLimit"] = "100000"
             });
+        });
+
+        builder.ConfigureTestServices(services =>
+        {
+            services.RemoveAll<IEmailSender>();
+            services.AddSingleton<IEmailSender>(Emails);
+            services.RemoveAll<TimeProvider>();
+            services.AddSingleton<TimeProvider>(Clock);
         });
     }
 
@@ -73,14 +94,25 @@ public class StarterApiFactory : WebApplicationFactory<Program>
         return CreateClientWithToken(auth.Token);
     }
 
-    // Registers a fresh user with a unique name and returns their login and a client signed in as them.
-    public async Task<(AuthResponse Auth, HttpClient Client)> RegisterUserAsync()
+    // Signs up a fresh user with a unique name, without confirming the email.
+    public async Task<RegisterRequest> RegisterUnconfirmedUserAsync()
     {
         string username = $"user{Guid.NewGuid():N}"[..20];
         RegisterRequest request = new(username, $"{username}@example.com", "Password1", "Test", "User");
 
-        HttpClient anonymous = CreateClient();
-        HttpResponseMessage response = await anonymous.PostAsJsonAsync("/api/auth/register", request);
+        HttpResponseMessage response = await CreateClient().PostAsJsonAsync("/api/auth/register", request);
+        response.EnsureSuccessStatusCode();
+        return request;
+    }
+
+    // Signs up a fresh user and confirms the email through the emailed link,
+    // then returns their login and a client signed in as them.
+    public async Task<(AuthResponse Auth, HttpClient Client)> RegisterUserAsync()
+    {
+        RegisterRequest request = await RegisterUnconfirmedUserAsync();
+
+        HttpResponseMessage response = await CreateClient()
+            .PostAsJsonAsync("/api/auth/confirm-email", new ConfirmEmailRequest(Emails.LatestTokenFor(request.Email)));
         response.EnsureSuccessStatusCode();
 
         AuthResponse auth = (await response.Content.ReadFromJsonAsync<AuthResponse>(Json))!;

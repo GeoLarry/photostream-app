@@ -1,6 +1,9 @@
+using Starter.Core.Enums;
+
 namespace Starter.Core.Contracts;
 
 // Public self-registration. Roles cannot be requested here: new users always get the default role.
+// The account cannot sign in until the email address is confirmed.
 public record RegisterRequest(
     string Username,
     string Email,
@@ -9,6 +12,11 @@ public record RegisterRequest(
     string? LastName);
 
 public record LoginRequest(string Username, string Password);
+
+// The token from the link in the confirmation email.
+public record ConfirmEmailRequest(string Token);
+
+public record ResendConfirmationRequest(string Email);
 
 public record RoleSummaryDto(int Id, string Name);
 
@@ -24,3 +32,6 @@ public record CurrentUserDto(
     IReadOnlyList<string> Permissions);
 
 public record AuthResponse(string Token, DateTime ExpiresAtUtc, CurrentUserDto User);
+
+// Response is set only when Outcome is Success.
+public record LoginResult(LoginOutcome Outcome, AuthResponse? Response = null);

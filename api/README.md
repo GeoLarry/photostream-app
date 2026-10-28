@@ -9,7 +9,7 @@ All commands below run from this `api/` folder.
 | Area | Details |
 |---|---|
 | API style | Minimal API, endpoints grouped per feature (`MapAuthEndpoints`, `MapUserEndpoints`, `MapRoleEndpoints`) |
-| Auth | Register, login (username or email), `GET /api/auth/me`, JWT bearer tokens, BCrypt password hashing |
+| Auth | Register with email confirmation, login (username or email), `GET /api/auth/me`, JWT bearer tokens, BCrypt password hashing, rate limiting on the public auth endpoints |
 | Authorization | Permissions as `(Module, Action)` pairs on roles, users can hold several roles, `.RequirePermission(...)` on any endpoint |
 | Live permissions | Permissions are checked against the database on every request, so role changes and deactivation apply to tokens already issued |
 | Protected roles | Super Admin (immutable, never assignable), Administrator and User (built in, cannot be deleted). `System` permissions cannot be granted through the API |
@@ -54,8 +54,10 @@ dotnet test
 
 | Method | Route | Permission |
 |---|---|---|
-| POST | `/api/auth/register` | public |
-| POST | `/api/auth/login` | public |
+| POST | `/api/auth/register` (202, emails a confirmation link) | public |
+| POST | `/api/auth/login` (403 `EmailNotConfirmed` before confirming) | public |
+| POST | `/api/auth/confirm-email` (signs the user in) | public |
+| POST | `/api/auth/resend-confirmation` (always 202) | public |
 | GET | `/api/auth/me` | signed in |
 | GET | `/api/users?pageNumber=&pageSize=&search=` | Users.View |
 | GET | `/api/users/{id}` | Users.View |
@@ -63,6 +65,11 @@ dotnet test
 | PUT | `/api/users/{id}` | Users.Edit |
 | DELETE | `/api/users/{id}` (deactivate) | Users.Delete |
 | POST | `/api/users/{id}/reactivate` | Users.Edit |
+| POST | `/api/users/{id}/confirm-email` | Users.Edit |
+| GET | `/api/users/{id}/favorites` | Users.View |
+| GET | `/api/favorites` | Favorites.View |
+| PUT | `/api/favorites/{photoId}` | Favorites.Create |
+| DELETE | `/api/favorites/{photoId}` | Favorites.Delete |
 | GET | `/api/roles`, `/api/roles/{id}` | Roles.View |
 | POST | `/api/roles` | Roles.Create |
 | PUT | `/api/roles/{id}` | Roles.Edit (system roles also need System.Edit) |
@@ -84,6 +91,13 @@ Errors from services come back as `400 { "message": "..." }`.
 | `Seed:AdminUsername`, `Seed:AdminEmail`, `Seed:AdminPassword` | `admin`, `admin@example.com`, empty | The admin is created only on an empty database, and only if a password is set |
 | `Seed:DemoUsers` | `0` (`25` in Development) | Number of Bogus demo users |
 | `Cors:AllowedOrigins` | `http://localhost:4200` | Angular dev server |
+| `Email:Host`, `Email:Port` | empty, `587` (`localhost`, `1025` in Development) | SMTP server. Empty host: emails are written to the log instead. Locally this is Mailpit (`docker compose up -d` in the repo root) |
+| `Email:UseSsl`, `Email:Username`, `Email:Password` | `false`, empty, empty | `UseSsl=true` for TLS on connect (port 465); otherwise STARTTLS when offered |
+| `Email:FromAddress`, `Email:FromName` | `no-reply@photostream.local`, `Photostream` | |
+| `Frontend:BaseUrl` | `http://localhost:4200` | Base of the links in emails (`/confirm-email?token=...`) |
+| `EmailConfirmation:TokenLifetimeHours` | `24` | How long a confirmation link works |
+| `EmailConfirmation:ResendCooldownSeconds` | `60` | No new link is sent if the last one is younger |
+| `RateLimiting:Auth:PermitLimit`, `WindowMinutes` | `10`, `15` | Requests per client IP to login, register and the email endpoints |
 
 Keep secrets out of `appsettings.json`. Locally:
 
@@ -92,6 +106,8 @@ cd src/Starter.Api
 dotnet user-secrets set "Jwt:Secret" "<a long random string>"
 dotnet user-secrets set "Seed:AdminPassword" "<a strong password>"
 ```
+
+The SMTP password belongs there too (`Email:Password`).
 
 In production use environment variables, e.g. `Jwt__Secret`, `Seed__AdminPassword`.
 

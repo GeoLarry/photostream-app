@@ -67,6 +67,14 @@ public static class UserEndpoints
             return found ? Results.Ok(new { message = "User reactivated." }) : NotFound();
         })
         .RequirePermission(PermissionModule.Users, PermissionAction.Edit);
+
+        // For a user who never received the confirmation email.
+        group.MapPost("/{id:int}/confirm-email", async (int id, IUserService userService, CancellationToken ct) =>
+        {
+            bool found = await userService.ConfirmEmailAsync(id, ct);
+            return found ? Results.Ok(new { message = "Email confirmed." }) : NotFound();
+        })
+        .RequirePermission(PermissionModule.Users, PermissionAction.Edit);
     }
 
     // An account with a protected role (Super Admin) can only be edited by a caller with System.Edit,

@@ -36,6 +36,9 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod());
 });
 
+// Limits on the public auth endpoints (RateLimiting:Auth).
+builder.Services.AddAuthRateLimiting();
+
 builder.Services.AddOpenApi();
 
 WebApplication app = builder.Build();
@@ -65,6 +68,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 // ==========================================
 // 4. ENDPOINTS

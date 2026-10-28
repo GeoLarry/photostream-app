@@ -6,11 +6,21 @@ namespace Starter.Core.Interfaces;
 
 public interface IAuthService
 {
+    // Creates an unconfirmed account and emails a confirmation link. No token is issued.
     // Throws ValidationFailedException on invalid input or a taken username/email.
-    Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default);
+    Task RegisterAsync(RegisterRequest request, CancellationToken ct = default);
 
-    // null on wrong credentials or a deactivated account (same result, not distinguishable).
-    Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken ct = default);
+    // Wrong credentials and a deactivated account give the same InvalidCredentials outcome.
+    // EmailNotConfirmed is only returned when the password is correct.
+    Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct = default);
+
+    // Confirms the email from the emailed link and signs the user in.
+    // null if the token is unknown, already used or expired.
+    Task<AuthResponse?> ConfirmEmailAsync(string token, CancellationToken ct = default);
+
+    // Sends a new link if the email belongs to an active, unconfirmed account. Does nothing otherwise,
+    // so callers cannot find out which addresses are registered.
+    Task ResendConfirmationAsync(string email, CancellationToken ct = default);
 
     // null if the user no longer exists or is deactivated.
     Task<CurrentUserDto?> GetCurrentUserAsync(int userId, CancellationToken ct = default);
@@ -24,6 +34,9 @@ public interface IUserService
     Task<UserResponse?> UpdateUserAsync(int id, UpdateUserRequest request, CancellationToken ct = default);
     Task<bool> DeactivateUserAsync(int id, CancellationToken ct = default);
     Task<bool> ReactivateUserAsync(int id, CancellationToken ct = default);
+
+    // Marks the email as confirmed, e.g. when the user never got the email. false if not found.
+    Task<bool> ConfirmEmailAsync(int id, CancellationToken ct = default);
 
     // true if the user holds a role that can never be assigned through the API (Super Admin).
     // Such accounts can only be edited by callers with the System.Edit permission.
@@ -54,6 +67,23 @@ public interface IFavoriteService
 
     // false if the photo was not a favorite.
     Task<bool> RemoveFavoriteAsync(int userId, string photoId, CancellationToken ct = default);
+}
+
+public interface IEmailConfirmationService
+{
+    // Replaces any earlier link with a new one and emails it. Skipped (silently) when the last link
+    // was sent less than the resend cooldown ago. A failure to send is logged, not thrown,
+    // because the account already exists and the user can ask for another link.
+    Task SendConfirmationAsync(User user, CancellationToken ct = default);
+
+    // Marks the user's email as confirmed and invalidates their links.
+    // Returns the user id, or null if the token is unknown or expired.
+    Task<int?> ConfirmAsync(string token, CancellationToken ct = default);
+}
+
+public interface IEmailSender
+{
+    Task SendAsync(EmailMessage message, CancellationToken ct = default);
 }
 
 public interface IPermissionService

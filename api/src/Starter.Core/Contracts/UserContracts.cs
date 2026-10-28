@@ -7,6 +7,7 @@ public record UserResponse(
     string? FirstName,
     string? LastName,
     bool IsActive,
+    bool EmailConfirmed,
     DateTime CreatedAtUtc,
     IReadOnlyList<RoleSummaryDto> Roles);
 
