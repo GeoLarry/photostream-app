@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './shared/guards/auth.guard';
 import { guestGuard } from './shared/guards/guest.guard';
+import { permissionGuard } from './shared/guards/permission.guard';
 
 export const routes: Routes = [
     {
@@ -37,6 +38,12 @@ export const routes: Routes = [
         // Opened from the link in the confirmation email
         path: 'confirm-email',
         loadComponent: () => import('./features/confirm-email/confirm-email').then(m => m.ConfirmEmail)
+    },
+    {
+        // User administration: only for roles with Users.View (the API checks it again on every request)
+        path: 'admin/users',
+        canActivate: [authGuard, permissionGuard('Users.View')],
+        loadComponent: () => import('./features/admin-users/admin-users').then(m => m.AdminUsers)
     },
     {
         path: '**',

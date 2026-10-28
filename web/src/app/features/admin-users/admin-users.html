@@ -1,0 +1,108 @@
+<section class="admin-page">
+  <header class="admin-header">
+    <div>
+      <h1>Users</h1>
+      @if (page(); as p) {
+        <p class="subtitle">{{ p.totalCount }} {{ p.totalCount === 1 ? 'account' : 'accounts' }}</p>
+      }
+    </div>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search">
+      <mat-label>Search name, username or email</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput type="search" [formControl]="search" />
+    </mat-form-field>
+  </header>
+
+  @if (loadFailed()) {
+    <div class="load-error" role="alert">
+      <p>We couldn't load the users.</p>
+      <button mat-stroked-button type="button" (click)="reload()">Try again</button>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      @if (isLoading()) {
+        <mat-progress-bar mode="indeterminate" aria-label="Loading users"></mat-progress-bar>
+      }
+
+      <table mat-table [dataSource]="users()">
+        <ng-container matColumnDef="user">
+          <th mat-header-cell *matHeaderCellDef>User</th>
+          <td mat-cell *matCellDef="let user">
+            <div class="username">{{ user.username }}@if (isMe(user)) { <span class="me">(you)</span> }</div>
+            @if (fullName(user)) {
+              <div class="secondary">{{ fullName(user) }}</div>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let user">
+            <div>{{ user.email }}</div>
+            <div class="secondary" [class.warn]="!user.emailConfirmed">
+              {{ user.emailConfirmed ? 'Confirmed' : 'Not confirmed' }}
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="roles">
+          <th mat-header-cell *matHeaderCellDef>Roles</th>
+          <td mat-cell *matCellDef="let user">
+            <mat-chip-set aria-label="Roles">
+              @for (role of user.roles; track role.id) {
+                <mat-chip>{{ role.name }}</mat-chip>
+              }
+            </mat-chip-set>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let user">
+            <span class="status" [class.inactive]="!user.isActive">{{ user.isActive ? 'Active' : 'Deactivated' }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="created">
+          <th mat-header-cell *matHeaderCellDef>Joined</th>
+          <!-- createdAtUtc ends in Z, so DatePipe shows it in the viewer's local time -->
+          <td mat-cell *matCellDef="let user">{{ user.createdAtUtc | date: 'mediumDate' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef><span class="visually-hidden">Actions</span></th>
+          <td mat-cell *matCellDef="let user" class="actions">
+            <button mat-button type="button" (click)="showFavorites(user)">Favorites</button>
+            @if (canEdit() && !user.emailConfirmed) {
+              <button mat-button type="button" (click)="confirmEmail(user)">Confirm email</button>
+            }
+            @if (user.isActive && canDeactivate() && !isMe(user)) {
+              <button mat-button type="button" class="danger" (click)="deactivate(user)">Deactivate</button>
+            }
+            @if (!user.isActive && canEdit()) {
+              <button mat-button type="button" (click)="reactivate(user)">Reactivate</button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let user; columns: columns" [class.inactive-row]="!user.isActive"></tr>
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell no-data" [attr.colspan]="columns.length">
+            {{ isLoading() ? 'Loading…' : 'No users match your search.' }}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <mat-paginator
+      [length]="page()?.totalCount ?? 0"
+      [pageIndex]="query().pageNumber - 1"
+      [pageSize]="query().pageSize"
+      [pageSizeOptions]="[10, 25, 50]"
+      (page)="changePage($event)"
+      aria-label="Users pages">
+    </mat-paginator>
+  }
+</section>

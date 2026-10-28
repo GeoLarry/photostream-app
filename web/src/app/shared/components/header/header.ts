@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatToolbar } from '@angular/material/toolbar';
@@ -22,6 +22,7 @@ export class Header {
   private router = inject(Router);
 
   user = this.auth.currentUser;
+  canAdminUsers = computed(() => this.auth.hasPermission('Users.View'));
 
   logout() {
     this.auth.logout();

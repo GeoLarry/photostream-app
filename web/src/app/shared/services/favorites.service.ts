@@ -110,7 +110,7 @@ export class FavoritesService {
   }
 }
 
-function toPhoto(favorite: FavoriteResponse): Photo {
+export function toPhoto(favorite: FavoriteResponse): Photo {
   return {
     id: favorite.photoId,
     author: favorite.author,

@@ -7,9 +7,11 @@ A full-stack photo gallery: browse an endless stream of photos and keep your fav
 
 ## Features
 
-- Infinite scroll over photos from [Picsum](https://picsum.photos)
-- Favorites with a photo detail page
-- Sign up and log in with JWT, roles and permissions on the API
+- Infinite scroll over photos from [Picsum](https://picsum.photos), with a detail page for every photo
+- Accounts: sign up with email confirmation, log in, stay signed in across reloads
+- Favorites saved per user on the API; visitors are invited to log in
+- Admin page for users: search, paging, roles, email and account status, each user's favorites, deactivate / reactivate, confirm an email by hand
+- Permission-based access end to end: roles grant `(Module, Action)` permissions, the API checks them on every request, the UI shows only what the user may do
 
 ## Tech stack
 
@@ -60,10 +62,19 @@ npm start
 
 App on http://localhost:4200.
 
+### Accounts to try
+
+| Account | Password | Can |
+|---|---|---|
+| `admin` | `Admin123!` | Everything, including **Admin → Users** in the header |
+| Any demo user, e.g. from the admin page | `Demo123!` | Browse and keep favorites |
+| A new sign-up | your own | Confirm the email in Mailpit (http://localhost:8025), then log in |
+
 ## Roadmap
 
-- [ ] Fix duplicate photos, image sizes and mobile favorites
+- [x] Fix duplicate photos, image sizes and mobile favorites
+- [x] Favorites stored per user on the API
+- [x] Login and registration in the frontend, with email confirmation
+- [x] Admin page for users
 - [ ] Upgrade to the latest Angular and Vitest
-- [ ] Favorites stored per user on the API
-- [ ] Login and registration in the frontend
 - [ ] Live demo

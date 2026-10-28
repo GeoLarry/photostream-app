@@ -11,6 +11,9 @@
 
         <div class="auth-nav">
             @if (user(); as user) {
+                @if (canAdminUsers()) {
+                    <a mat-flat-button routerLink="/admin/users" routerLinkActive="active-nav-btn" class="nav-btn">Admin</a>
+                }
                 <span class="user-name" [attr.aria-label]="'Signed in as ' + user.username">{{ user.firstName || user.username }}</span>
                 <button mat-flat-button class="nav-btn" type="button" (click)="logout()">Log out</button>
             } @else {
