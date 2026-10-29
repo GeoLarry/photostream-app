@@ -49,7 +49,7 @@ describe('PhotoDetails', () => {
     httpMock.verify();
   });
 
-  // Set the route id, let the resource start, and optionally answer the info request
+  // Set the route id and render once the resource has settled
   async function open(id: string) {
     fixture.componentRef.setInput('id', id);
     fixture.detectChanges();
@@ -65,7 +65,7 @@ describe('PhotoDetails', () => {
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
   const toggle = () => fixture.nativeElement.querySelector('.fav-toggle') as HTMLButtonElement;
 
-  it('should load a photo that is not a favorite from the Picsum info endpoint', async () => {
+  it('loads a photo that is not a favorite from Picsum', async () => {
     fixture.componentRef.setInput('id', '7');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('mat-spinner')).toBeTruthy();
@@ -78,7 +78,7 @@ describe('PhotoDetails', () => {
     expect(toggle().textContent).toContain('Add to favorites');
   });
 
-  it('should use the stored favorite without calling the API', async () => {
+  it('shows a saved favorite without calling Picsum', async () => {
     favorites.list.set([photo]);
     await open('7');
 
@@ -87,7 +87,7 @@ describe('PhotoDetails', () => {
     expect(toggle().textContent).toContain('Remove from favorites');
   });
 
-  it('should show an error state when the photo cannot be loaded', async () => {
+  it('says so when the photo cannot be loaded', async () => {
     fixture.componentRef.setInput('id', '7');
     fixture.detectChanges();
     httpMock.expectOne(infoUrl).flush('Not found', { status: 404, statusText: 'Not Found' });
@@ -98,7 +98,7 @@ describe('PhotoDetails', () => {
     expect(alert.textContent).toContain("couldn't load this photo");
   });
 
-  it('should add and remove the favorite without leaving the page', async () => {
+  it('adds and removes the favorite without leaving the page', async () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     fixture.componentRef.setInput('id', '7');
     fixture.detectChanges();
@@ -119,7 +119,7 @@ describe('PhotoDetails', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('should fall back to the photostream when going back from a directly opened page', async () => {
+  it('goes back to the photostream when the page was opened directly', async () => {
     favorites.list.set([photo]);
     await open('7');
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);

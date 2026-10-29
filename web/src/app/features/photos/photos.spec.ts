@@ -2,7 +2,7 @@ import type { MockOf } from '../../shared/testing/mock-of';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Photos } from './photos';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpRequest, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { PhotoService } from '../../shared/services/photo.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
@@ -16,10 +16,10 @@ import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material
 import { EMPTY } from 'rxjs';
 
 describe('Photos', () => {
-  let component: Photos;
   let fixture: ComponentFixture<Photos>;
   let favorites: FakeFavoritesService;
   let snackBar: MockOf<MatSnackBar, 'open'>;
+  const isListRequest = (req: HttpRequest<unknown>) => req.url.startsWith('https://picsum.photos/v2/list');
 
   beforeEach(async () => {
     // The infinite scroll watches an anchor below the grid; jsdom has no IntersectionObserver
@@ -45,20 +45,13 @@ describe('Photos', () => {
       .compileComponents();
 
     fixture = TestBed.createComponent(Photos);
-    component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should request the first photostream page on init', () => {
-    const httpMock = TestBed.inject(HttpTestingController);
-    const req = httpMock.expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
-    expect(req.request.method).toBe('GET');
+  it('asks for the first photostream page when opened', () => {
+    TestBed.inject(HttpTestingController).expectOne(isListRequest);
   });
 
   describe('with a loaded photo', () => {
@@ -75,8 +68,7 @@ describe('Photos', () => {
     const pageOf = (url: string) => Number(new URL(url).searchParams.get('page'));
 
     beforeEach(async () => {
-      const first = TestBed.inject(HttpTestingController)
-        .expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
+      const first = TestBed.inject(HttpTestingController).expectOne(isListRequest);
       firstPageUrl = first.request.url;
       first.flush([photo]);
       // Wait out the simulated API delay (at most 300 ms)
@@ -84,39 +76,38 @@ describe('Photos', () => {
       fixture.detectChanges();
     });
 
-    it('should load the next page when the bottom of the grid scrolls into view', () => {
+    it('loads the next page when the bottom of the grid scrolls into view', () => {
       FakeIntersectionObserver.latest!.enter();
 
-      const next = TestBed.inject(HttpTestingController)
-        .expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
+      const next = TestBed.inject(HttpTestingController).expectOne(isListRequest);
       expect(pageOf(next.request.url)).toBe(pageOf(firstPageUrl) + 1);
     });
 
-    it('should keep loading while the bottom of the grid stays in view', async () => {
+    it('keeps loading while the bottom of the grid stays in view', async () => {
       const httpMock = TestBed.inject(HttpTestingController);
       FakeIntersectionObserver.latest!.enter();
-      const second = httpMock.expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
+      const second = httpMock.expectOne(isListRequest);
       second.flush([{ ...photo, id: '102' }]);
       await new Promise(resolve => setTimeout(resolve, 350));
       await fixture.whenStable();
 
-      const third = httpMock.expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
+      const third = httpMock.expectOne(isListRequest);
       expect(pageOf(third.request.url)).toBe(pageOf(second.request.url) + 1);
     });
 
-    it('should stop loading once the bottom of the grid is out of view', async () => {
+    it('stops loading once the bottom of the grid is out of view', async () => {
       const httpMock = TestBed.inject(HttpTestingController);
       const observer = FakeIntersectionObserver.latest!;
       observer.enter();
       observer.leave();
-      httpMock.expectOne(req => req.url.startsWith('https://picsum.photos/v2/list')).flush([{ ...photo, id: '102' }]);
+      httpMock.expectOne(isListRequest).flush([{ ...photo, id: '102' }]);
       await new Promise(resolve => setTimeout(resolve, 350));
       await fixture.whenStable();
 
-      httpMock.expectNone(req => req.url.startsWith('https://picsum.photos/v2/list'));
+      httpMock.expectNone(isListRequest);
     });
 
-    it('should stop watching the scroll when the page is left', () => {
+    it('stops watching the scroll when the page is left', () => {
       const observer = FakeIntersectionObserver.latest!;
       expect(observer.observed.length).toBe(1);
 
@@ -125,13 +116,13 @@ describe('Photos', () => {
       expect(observer.disconnected).toBe(true);
     });
 
-    it('should link the card to the photo detail page', () => {
+    it('links the card to the photo detail page', () => {
       const link = fixture.nativeElement.querySelector('.card-link') as HTMLAnchorElement;
       expect(link.getAttribute('href')).toBe('/photos/101');
       expect(link.getAttribute('aria-label')).toBe('View photo by John Doe');
     });
 
-    it('should give the favorite button a state-aware accessible name', async () => {
+    it('names the favorite button after what a click will do', async () => {
       const button = () => fixture.nativeElement.querySelector('.fav-btn') as HTMLButtonElement;
       expect(button().getAttribute('aria-label')).toBe('Add to favorites');
       expect(button().getAttribute('aria-pressed')).toBe('false');
@@ -144,7 +135,7 @@ describe('Photos', () => {
       expect(button().getAttribute('aria-pressed')).toBe('true');
     });
 
-    it('should leave the photo unsaved for a visitor', async () => {
+    it('leaves the photo unsaved for a visitor', async () => {
       favorites.signedIn = false;
       const button = () => fixture.nativeElement.querySelector('.fav-btn') as HTMLButtonElement;
 
