@@ -11,8 +11,7 @@ describe('PhotoService', () => {
   let httpMock: HttpTestingController;
   let favorites: FakeFavoritesService;
 
-  // Mock photo data to use across multiple tests
-  const mockPhoto: Photo = {
+  const photo101: Photo = {
     id: '101',
     download_url: 'https://picsum.photos/id/101/200/300',
     height: 300,
@@ -36,18 +35,10 @@ describe('PhotoService', () => {
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => {
-    // Verify that no mismatched or outstanding HTTP requests remain open
-    httpMock.verify();
-  });
-
-  // Test 1: Verifies that the service instantiates correctly
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+  afterEach(() => httpMock.verify());
 
   describe('photostream paging', () => {
-    const photo = (id: string): Photo => ({ ...mockPhoto, id });
+    const photo = (id: string): Photo => ({ ...photo101, id });
     const listUrl = (page: number) => `https://picsum.photos/v2/list?page=${page}&limit=15`;
     // Let pending promise callbacks run so the next request is issued
     const settle = () => new Promise(resolve => setTimeout(resolve));
@@ -57,7 +48,7 @@ describe('PhotoService', () => {
       vi.spyOn(Math, 'random').mockReturnValue(0.5);
     });
 
-    it('should start on a random page and then load pages sequentially', async () => {
+    it('starts on a random page and then loads the pages in order', async () => {
       let loading = service.loadNextPage();
       httpMock.expectOne(listUrl(16)).flush([photo('1'), photo('2')]);
       await loading;
@@ -69,7 +60,7 @@ describe('PhotoService', () => {
       expect(service.photos().map(p => p.id)).toEqual(['1', '2', '3']);
     });
 
-    it('should skip photos that are already loaded', async () => {
+    it('skips photos that are already loaded', async () => {
       let loading = service.loadNextPage();
       httpMock.expectOne(listUrl(16)).flush([photo('1'), photo('2'), photo('2')]);
       await loading;
@@ -81,7 +72,7 @@ describe('PhotoService', () => {
       expect(service.photos().map(p => p.id)).toEqual(['1', '2', '3']);
     });
 
-    it('should wrap around to page 1 when a page comes back empty', async () => {
+    it('wraps around to page 1 when a page comes back empty', async () => {
       let loading = service.loadNextPage();
       httpMock.expectOne(listUrl(16)).flush([]);
       await settle();
@@ -95,7 +86,7 @@ describe('PhotoService', () => {
       expect(service.photos().map(p => p.id)).toEqual(['1', '2']);
     });
 
-    it('should ignore a second call while a page is loading', async () => {
+    it('ignores a second call while a page is loading', async () => {
       const loading = service.loadNextPage();
       service.loadNextPage();
       httpMock.expectOne(listUrl(16)).flush([photo('1')]);
@@ -104,15 +95,15 @@ describe('PhotoService', () => {
     });
   });
 
-  it('should return a saved favorite from getPhoto without calling Picsum', async () => {
-    favorites.list.set([mockPhoto]);
-    expect(await service.getPhoto('101')).toEqual(mockPhoto);
+  it('returns a saved favorite without calling Picsum', async () => {
+    favorites.list.set([photo101]);
+    expect(await service.getPhoto('101')).toEqual(photo101);
     httpMock.expectNone('https://picsum.photos/id/101/info');
   });
 
-  it('should fetch a non-favorite photo from the Picsum info endpoint', async () => {
+  it('fetches any other photo from Picsum', async () => {
     const loading = service.getPhoto('101');
-    httpMock.expectOne('https://picsum.photos/id/101/info').flush(mockPhoto);
-    expect(await loading).toEqual(mockPhoto);
+    httpMock.expectOne('https://picsum.photos/id/101/info').flush(photo101);
+    expect(await loading).toEqual(photo101);
   });
 });

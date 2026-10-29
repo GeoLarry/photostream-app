@@ -18,22 +18,12 @@ describe('App', () => {
     }).compileComponents();
   });
 
-  it('should create the app', () => {
+  it('wraps the page in the header with its navigation', () => {
     const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
+    fixture.detectChanges();
 
-  it('should render the layout structural elements', () => {
-    const fixture = TestBed.createComponent(App);
-    fixture.detectChanges(); // Triggers template rendering
-    const compiled = fixture.nativeElement as HTMLElement;
-
-    // 👉 THE FIX: Verify the shell elements render cleanly instead of checking matching titles
-    expect(compiled).toBeTruthy();
-
-    // Check that our navigation headers rendered their structural content text
-    expect(compiled.textContent).toContain('Photostream');
-    expect(compiled.textContent).toContain('Favorites');
+    const text = (fixture.nativeElement as HTMLElement).textContent;
+    expect(text).toContain('Photostream');
+    expect(text).toContain('Favorites');
   });
 });

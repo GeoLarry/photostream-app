@@ -9,7 +9,6 @@ import { picsumLoader } from '../../shared/images/picsum-loader';
 import { Photo } from '../../models/photo.model';
 
 describe('Favorites', () => {
-  let component: Favorites;
   let fixture: ComponentFixture<Favorites>;
   let favorites: FakeFavoritesService;
 
@@ -35,19 +34,14 @@ describe('Favorites', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(Favorites);
-    component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should show the empty state without favorites', () => {
+  it('shows the empty state without favorites', () => {
     expect(fixture.nativeElement.textContent).toContain('Your Favorites is empty');
   });
 
-  it('should link each favorite to its detail page', () => {
+  it('links each favorite to its detail page', () => {
     favorites.list.set([photo]);
     fixture.detectChanges();
 
@@ -55,7 +49,7 @@ describe('Favorites', () => {
     expect(link.getAttribute('href')).toBe('/photos/101');
   });
 
-  it('should show a spinner while the first load is running', () => {
+  it('shows a spinner during the first load', () => {
     favorites.loading.set(true);
     fixture.detectChanges();
 
@@ -63,7 +57,7 @@ describe('Favorites', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Your Favorites is empty');
   });
 
-  it('should offer a retry when loading failed', () => {
+  it('offers a retry when loading failed', () => {
     favorites.failed.set(true);
     fixture.detectChanges();
 
