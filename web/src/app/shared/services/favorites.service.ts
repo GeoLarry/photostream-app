@@ -1,7 +1,7 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { API_URL } from '../http/api-url';
 import { Photo } from '../../models/photo.model';
 import { AddFavoriteRequest, FavoriteResponse } from '../../models/favorite.model';
 import { AuthService } from './auth.service';
@@ -20,7 +20,7 @@ export class FavoritesService {
 
   private http = inject(HttpClient);
   private auth = inject(AuthService);
-  private url = `${environment.apiUrl}/api/favorites`;
+  private url = `${API_URL}/favorites`;
 
   private favoritesSignal = signal<Photo[]>([]);
   private isLoadingSignal = signal(false);

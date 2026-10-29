@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { API_URL } from '../http/api-url';
 import { PagedResponse, UserSummary } from '../../models/user.model';
 import { FavoriteResponse } from '../../models/favorite.model';
 import { Photo } from '../../models/photo.model';
@@ -21,7 +21,7 @@ export interface UserQuery {
 export class AdminUsersService {
 
   private http = inject(HttpClient);
-  private url = `${environment.apiUrl}/api/users`;
+  private url = `${API_URL}/users`;
 
   private pageSignal = signal<PagedResponse<UserSummary> | null>(null);
   private querySignal = signal<UserQuery>({ pageNumber: 1, pageSize: 10, search: '' });

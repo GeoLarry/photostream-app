@@ -2,13 +2,13 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { API_URL } from './api-url';
 import { AuthService } from '../services/auth.service';
 
 // Adds the JWT to requests for our own API only, never to third parties such as Picsum.
 // A 401 while signed in means the session ended on the server: sign out and go to the login page.
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  if (!req.url.startsWith(environment.apiUrl)) return next(req);
+  if (!req.url.startsWith(`${API_URL}/`)) return next(req);
 
   const auth = inject(AuthService);
   const router = inject(Router);

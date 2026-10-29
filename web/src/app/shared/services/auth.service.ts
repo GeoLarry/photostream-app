@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { API_URL } from '../http/api-url';
 import { ApiMessage, AuthResponse, CurrentUser, LoginRequest, RegisterRequest } from '../../models/auth.model';
 
 // The JWT is kept in localStorage so a reload keeps the user signed in. A deliberate trade-off for an SPA:
@@ -19,7 +19,7 @@ interface StoredSession {
 export class AuthService {
 
   private http = inject(HttpClient);
-  private authUrl = `${environment.apiUrl}/api/auth`;
+  private authUrl = `${API_URL}/auth`;
 
   private tokenSignal = signal<string | null>(readStoredSession()?.token ?? null);
   private userSignal = signal<CurrentUser | null>(null);

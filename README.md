@@ -60,7 +60,7 @@ npm install
 npm start
 ```
 
-App on http://localhost:4200.
+App on http://localhost:4200. The app calls the API on its own origin (`/api`); the dev server proxies those requests to http://localhost:5080 (`web/proxy.conf.json`). In production, serve the app and the API under one domain, with `/api` routed to the API.
 
 ### Accounts to try
 

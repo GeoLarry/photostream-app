@@ -7,10 +7,10 @@ import { AuthService } from './auth.service';
 import { CurrentUser } from '../../models/auth.model';
 import { FavoriteResponse } from '../../models/favorite.model';
 import { Photo } from '../../models/photo.model';
-import { environment } from '../../../environments/environment';
+import { API_URL } from '../http/api-url';
 
 describe('FavoritesService', () => {
-  const url = `${environment.apiUrl}/api/favorites`;
+  const url = `${API_URL}/favorites`;
   const user = (id: number): CurrentUser => ({ id, username: `u${id}`, email: `u${id}@example.com`, firstName: null, lastName: null, roles: [], permissions: [] });
   const photo = (id: string): Photo => ({
     id, author: 'John Doe', width: 5000, height: 3333,

@@ -5,7 +5,7 @@ import { provideRouter, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from '../services/auth.service';
-import { environment } from '../../../environments/environment';
+import { API_URL } from './api-url';
 
 describe('authInterceptor', () => {
   let http: HttpClient;
@@ -15,7 +15,7 @@ describe('authInterceptor', () => {
 
   const signIn = async () => {
     const login = auth.login({ username: 'jane', password: 'Password1' });
-    httpMock.expectOne(`${environment.apiUrl}/api/auth/login`).flush({
+    httpMock.expectOne(`${API_URL}/auth/login`).flush({
       token: 'jwt-token',
       expiresAtUtc: new Date(Date.now() + 3600000).toISOString(),
       user: { id: 1, username: 'jane', email: 'j@example.com', firstName: null, lastName: null, roles: [], permissions: [] },
@@ -42,9 +42,9 @@ describe('authInterceptor', () => {
   it('adds the token to API requests', async () => {
     await signIn();
 
-    http.get(`${environment.apiUrl}/api/favorites`).subscribe();
+    http.get(`${API_URL}/favorites`).subscribe();
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/api/favorites`);
+    const req = httpMock.expectOne(`${API_URL}/favorites`);
     expect(req.request.headers.get('Authorization')).toBe('Bearer jwt-token');
     req.flush([]);
   });
@@ -59,10 +59,20 @@ describe('authInterceptor', () => {
     req.flush([]);
   });
 
-  it('sends no header when signed out', () => {
-    http.get(`${environment.apiUrl}/health`).subscribe();
+  it('sends no token to app paths outside the API', async () => {
+    await signIn();
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/health`);
+    http.get('/apiary.json').subscribe();
+
+    const req = httpMock.expectOne('/apiary.json');
+    expect(req.request.headers.has('Authorization')).toBe(false);
+    req.flush({});
+  });
+
+  it('sends no header when signed out', () => {
+    http.get(`${API_URL}/health`).subscribe();
+
+    const req = httpMock.expectOne(`${API_URL}/health`);
     expect(req.request.headers.has('Authorization')).toBe(false);
     req.flush({});
   });
@@ -71,8 +81,8 @@ describe('authInterceptor', () => {
     await signIn();
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-    const request = firstValueFrom(http.get(`${environment.apiUrl}/api/favorites`));
-    httpMock.expectOne(`${environment.apiUrl}/api/favorites`).flush(null, { status: 401, statusText: 'Unauthorized' });
+    const request = firstValueFrom(http.get(`${API_URL}/favorites`));
+    httpMock.expectOne(`${API_URL}/favorites`).flush(null, { status: 401, statusText: 'Unauthorized' });
     await expect(request).rejects.toThrow();
 
     expect(auth.isAuthenticated()).toBe(false);
@@ -83,7 +93,7 @@ describe('authInterceptor', () => {
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     const login = auth.login({ username: 'jane', password: 'wrong' });
-    httpMock.expectOne(`${environment.apiUrl}/api/auth/login`).flush(null, { status: 401, statusText: 'Unauthorized' });
+    httpMock.expectOne(`${API_URL}/auth/login`).flush(null, { status: 401, statusText: 'Unauthorized' });
     await expect(login).rejects.toThrow();
 
     expect(navigate).not.toHaveBeenCalled();
