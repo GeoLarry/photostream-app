@@ -1,6 +1,6 @@
 # Photostream API
 
-.NET 10 Minimal API for Photostream, built from the [dotnet-auth-starter](https://github.com/GeoLarry/dotnet-auth-starter) template: sign-up and login with JWT, users, roles and fine-grained permissions, a real database and seeded demo data.
+.NET 10 Minimal API for Photostream, built from my private `dotnet-auth-starter` template: sign-up and login with JWT, users, roles and fine-grained permissions, a real database and seeded demo data.
 
 All commands below run from this `api/` folder.
 
