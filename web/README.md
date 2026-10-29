@@ -22,6 +22,7 @@ npm install
 npm start          # dev server on http://localhost:4200, /api proxied to the API on :5080
 npm run build      # production build in dist/
 npm test           # unit tests (add -- --watch=false for a single run)
+npm run lint       # ESLint: TypeScript, Angular and template accessibility rules
 ```
 
 ## Structure
