@@ -13,15 +13,13 @@ import { NgOptimizedImage } from '@angular/common';
   styleUrl: './favorites.scss',
 })
 export class Favorites {
-  // Modern dependency injection
-  protected favoritesService = inject(FavoritesService);
+  private favoritesService = inject(FavoritesService);
 
-  // Expose the read-only signals from the service directly to the template
   favorites = this.favoritesService.favorites;
   isLoading = this.favoritesService.isLoading;
   loadFailed = this.favoritesService.loadFailed;
 
-  retry() {
+  retry(): void {
     this.favoritesService.load();
   }
 }

@@ -3,10 +3,10 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AdminUsersService } from './admin-users.service';
 import { PagedResponse, UserSummary } from '../../models/user.model';
-import { environment } from '../../../environments/environment';
+import { API_URL } from '../http/api-url';
 
 describe('AdminUsersService', () => {
-  const url = `${environment.apiUrl}/api/users`;
+  const url = `${API_URL}/users`;
   const user = (id: number, changes: Partial<UserSummary> = {}): UserSummary => ({
     id, username: `user${id}`, email: `user${id}@example.com`, firstName: null, lastName: null,
     isActive: true, emailConfirmed: true, createdAtUtc: '2026-10-28T10:00:00Z', roles: [{ id: 3, name: 'User' }], ...changes,

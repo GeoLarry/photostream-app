@@ -16,8 +16,7 @@ const MAX_START_PAGE = 30;
 })
 export class PhotoService {
 
-  private http = inject(HttpClient); // Modern Dependency Injection χωρίς constructor
-
+  private http = inject(HttpClient);
   private favorites = inject(FavoritesService);
 
   // Photostream state lives here so it survives navigating to a photo and back

@@ -5,7 +5,6 @@ import { permissionGuard } from './shared/guards/permission.guard';
 
 export const routes: Routes = [
     {
-        // Lazy-loading the Photostream component
         path: '',
         loadComponent: () => import('./features/photos/photos').then(m => m.Photos)
     },
@@ -47,7 +46,6 @@ export const routes: Routes = [
     },
     {
         path: '**',
-        // Fallback redirect for any invalid URLs
         redirectTo: ''
     }
 ];

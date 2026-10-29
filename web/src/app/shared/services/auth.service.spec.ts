@@ -3,10 +3,10 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from './auth.service';
 import { AuthResponse, CurrentUser } from '../../models/auth.model';
-import { environment } from '../../../environments/environment';
+import { API_URL } from '../http/api-url';
 
 describe('AuthService', () => {
-  const authUrl = `${environment.apiUrl}/api/auth`;
+  const authUrl = `${API_URL}/auth`;
   const user: CurrentUser = {
     id: 7, username: 'jane', email: 'jane@example.com', firstName: 'Jane', lastName: null,
     roles: [{ id: 3, name: 'User' }], permissions: ['Favorites.View', 'Favorites.Create'],

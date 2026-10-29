@@ -18,14 +18,13 @@ import { scaledHeight } from '../../shared/images/picsum-loader';
 })
 export class PhotoDetails {
 
-  // Modern dependency injection
   private router = inject(Router);
   private location = inject(Location);
   private photoService = inject(PhotoService);
   private favorites = inject(FavoritesService);
   private favoriteActions = inject(FavoriteActions);
 
-  // Signal Input: Automatically bound from the ':id' route parameter
+  // The ':id' route parameter, bound by withComponentInputBinding()
   id = input.required<string>();
 
   // Works for any photo: the stored favorite if there is one, otherwise fetched from Picsum
@@ -42,12 +41,12 @@ export class PhotoDetails {
   }
 
   // Stays on the page either way, so the user can undo right away
-  toggleFavorite(photo: Photo) {
+  toggleFavorite(photo: Photo): void {
     this.favoriteActions.toggle(photo);
   }
 
   // Go back within the app; when the page was opened directly, fall back to the photostream
-  goBack() {
+  goBack(): void {
     if (this.router.lastSuccessfulNavigation()?.previousNavigation) {
       this.location.back();
     } else {
