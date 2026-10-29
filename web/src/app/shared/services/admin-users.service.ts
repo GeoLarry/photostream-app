@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResourceRef, httpResource } from '@angular/common/http';
 import { Observable, firstValueFrom } from 'rxjs';
 import { API_URL } from '../http/api-url';
 import { PagedResponse, UserSummary } from '../../models/user.model';
@@ -69,9 +69,13 @@ export class AdminUsersService {
     return this.changeAndReplace(user, this.http.post(`${this.url}/${user.id}/confirm-email`, null), { emailConfirmed: true });
   }
 
-  async favoritesOf(user: UserSummary): Promise<Photo[]> {
-    const favorites = await firstValueFrom(this.http.get<FavoriteResponse[]>(`${this.url}/${user.id}/favorites`));
-    return favorites.map(toPhoto);
+  // A user's favorites as photos, for the admin's read-only view. Call it in an injection context
+  // (e.g. a field of the component that shows them); the request is cancelled when that component goes.
+  favoritesOf(user: UserSummary): HttpResourceRef<Photo[]> {
+    return httpResource(() => `${this.url}/${user.id}/favorites`, {
+      parse: raw => (raw as FavoriteResponse[]).map(toPhoto),
+      defaultValue: [],
+    });
   }
 
   // Runs the request, then updates that one row in place instead of reloading the page.

@@ -1,4 +1,4 @@
-import { Component, inject, resource } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { MatButton } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
@@ -48,7 +48,5 @@ export class UserFavoritesDialog {
   private admin = inject(AdminUsersService);
   user = inject<UserSummary>(MAT_DIALOG_DATA);
 
-  favorites = resource({
-    loader: () => this.admin.favoritesOf(this.user),
-  });
+  favorites = this.admin.favoritesOf(this.user);
 }
