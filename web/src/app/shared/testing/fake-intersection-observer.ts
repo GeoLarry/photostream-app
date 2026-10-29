@@ -5,13 +5,17 @@ export class FakeIntersectionObserver {
 
   readonly observed: Element[] = [];
   disconnected = false;
+  // Whether the observed elements are on screen, set by enter() and leave()
+  private inView = false;
 
   constructor(private callback: IntersectionObserverCallback) {
     FakeIntersectionObserver.latest = this;
   }
 
+  // Like a real observer, a new observe() first reports where the element is right now.
   observe(element: Element): void {
     this.observed.push(element);
+    if (this.inView) queueMicrotask(() => this.report([element]));
   }
 
   unobserve(element: Element): void {
@@ -28,7 +32,18 @@ export class FakeIntersectionObserver {
 
   // Simulates every observed element scrolling into view.
   enter(): void {
-    const entries = this.observed.map(target => ({ target, isIntersecting: true }) as IntersectionObserverEntry);
+    this.inView = true;
+    this.report(this.observed);
+  }
+
+  // Simulates every observed element scrolling out of view.
+  leave(): void {
+    this.inView = false;
+    this.report(this.observed);
+  }
+
+  private report(targets: Element[]): void {
+    const entries = targets.map(target => ({ target, isIntersecting: this.inView }) as IntersectionObserverEntry);
     this.callback(entries, this as unknown as IntersectionObserver);
   }
 }
