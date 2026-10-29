@@ -92,6 +92,30 @@ describe('Photos', () => {
       expect(pageOf(next.request.url)).toBe(pageOf(firstPageUrl) + 1);
     });
 
+    it('should keep loading while the bottom of the grid stays in view', async () => {
+      const httpMock = TestBed.inject(HttpTestingController);
+      FakeIntersectionObserver.latest!.enter();
+      const second = httpMock.expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
+      second.flush([{ ...photo, id: '102' }]);
+      await new Promise(resolve => setTimeout(resolve, 350));
+      await fixture.whenStable();
+
+      const third = httpMock.expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
+      expect(pageOf(third.request.url)).toBe(pageOf(second.request.url) + 1);
+    });
+
+    it('should stop loading once the bottom of the grid is out of view', async () => {
+      const httpMock = TestBed.inject(HttpTestingController);
+      const observer = FakeIntersectionObserver.latest!;
+      observer.enter();
+      observer.leave();
+      httpMock.expectOne(req => req.url.startsWith('https://picsum.photos/v2/list')).flush([{ ...photo, id: '102' }]);
+      await new Promise(resolve => setTimeout(resolve, 350));
+      await fixture.whenStable();
+
+      httpMock.expectNone(req => req.url.startsWith('https://picsum.photos/v2/list'));
+    });
+
     it('should stop watching the scroll when the page is left', () => {
       const observer = FakeIntersectionObserver.latest!;
       expect(observer.observed.length).toBe(1);

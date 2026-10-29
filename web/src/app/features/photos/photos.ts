@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, viewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Injector, afterNextRender, inject, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardImage } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -23,6 +23,7 @@ export class Photos implements OnInit, AfterViewInit, OnDestroy {
   private favorites = inject(FavoritesService)
   private favoriteActions = inject(FavoriteActions)
   private snackBar = inject(MatSnackBar)
+  private injector = inject(Injector);
   private scrollAnchor = viewChild<ElementRef<HTMLDivElement>>('scrollAnchor');
 
   photos = this.photoService.photos;
@@ -56,7 +57,18 @@ export class Photos implements OnInit, AfterViewInit, OnDestroy {
     } catch (error) {
       console.error('Failed to load photos', error);
       this.snackBar.open('Failed to load photos.', 'Close', { duration: 2000 })
+      return;
     }
+    // The observer only reports changes: if the new photos didn't push the anchor off a tall screen,
+    // nothing would fire again. Observing it anew reports where it is now.
+    afterNextRender(() => this.watchAnchorAgain(), { injector: this.injector });
+  }
+
+  private watchAnchorAgain(): void {
+    const anchor = this.scrollAnchor()?.nativeElement;
+    if (!anchor || !this.observer) return;
+    this.observer.unobserve(anchor);
+    this.observer.observe(anchor);
   }
 
   // Custom Infinite Scroll Logic using IntersectionObserver
@@ -65,7 +77,7 @@ export class Photos implements OnInit, AfterViewInit, OnDestroy {
     if (!anchor) return;
 
     this.observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && !this.isLoading()) { // Fetch more photos when anchor becomes visible and we aren't currently loading
+      if (entries.some(entry => entry.isIntersecting) && !this.isLoading()) { // Fetch more photos when anchor becomes visible and we aren't currently loading
         this.loadMorePhotos();
       }
     },
