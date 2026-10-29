@@ -1,3 +1,4 @@
+import type { MockOf } from '../../shared/testing/mock-of';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Photos } from './photos';
@@ -6,6 +7,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { PhotoService } from '../../shared/services/photo.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
 import { FakeFavoritesService } from '../../shared/testing/fake-favorites.service';
+import { FakeIntersectionObserver } from '../../shared/testing/fake-intersection-observer';
 import { Photo } from '../../models/photo.model';
 import { IMAGE_LOADER } from '@angular/common';
 import { provideRouter } from '@angular/router';
@@ -17,13 +19,17 @@ describe('Photos', () => {
   let component: Photos;
   let fixture: ComponentFixture<Photos>;
   let favorites: FakeFavoritesService;
-  let snackBar: jasmine.SpyObj<MatSnackBar>;
+  let snackBar: MockOf<MatSnackBar, 'open'>;
 
   beforeEach(async () => {
+    // The infinite scroll watches an anchor below the grid; jsdom has no IntersectionObserver
+    vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
     favorites = new FakeFavoritesService();
     // A real snackbar keeps a timer running that whenStable() would wait for
-    snackBar = jasmine.createSpyObj<MatSnackBar>('MatSnackBar', ['open']);
-    snackBar.open.and.returnValue({ onAction: () => EMPTY } as unknown as MatSnackBarRef<TextOnlySnackBar>);
+    snackBar = {
+      open: vi.fn().mockName('MatSnackBar.open')
+    };
+    snackBar.open.mockReturnValue({ onAction: () => EMPTY } as unknown as MatSnackBarRef<TextOnlySnackBar>);
     await TestBed.configureTestingModule({
       imports: [Photos],
       providers: [
@@ -36,12 +42,14 @@ describe('Photos', () => {
         provideRouter([])
       ]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(Photos);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
+
+  afterEach(() => vi.unstubAllGlobals());
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -63,13 +71,34 @@ describe('Photos', () => {
       author: 'John Doe'
     };
 
+    let firstPageUrl: string;
+    const pageOf = (url: string) => Number(new URL(url).searchParams.get('page'));
+
     beforeEach(async () => {
-      TestBed.inject(HttpTestingController)
-        .expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'))
-        .flush([photo]);
+      const first = TestBed.inject(HttpTestingController)
+        .expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
+      firstPageUrl = first.request.url;
+      first.flush([photo]);
       // Wait out the simulated API delay (at most 300 ms)
       await new Promise(resolve => setTimeout(resolve, 350));
       fixture.detectChanges();
+    });
+
+    it('should load the next page when the bottom of the grid scrolls into view', () => {
+      FakeIntersectionObserver.latest!.enter();
+
+      const next = TestBed.inject(HttpTestingController)
+        .expectOne(req => req.url.startsWith('https://picsum.photos/v2/list'));
+      expect(pageOf(next.request.url)).toBe(pageOf(firstPageUrl) + 1);
+    });
+
+    it('should stop watching the scroll when the page is left', () => {
+      const observer = FakeIntersectionObserver.latest!;
+      expect(observer.observed.length).toBe(1);
+
+      fixture.destroy();
+
+      expect(observer.disconnected).toBe(true);
     });
 
     it('should link the card to the photo detail page', () => {
@@ -100,7 +129,7 @@ describe('Photos', () => {
       fixture.detectChanges();
 
       expect(button().getAttribute('aria-pressed')).toBe('false');
-      expect(snackBar.open).toHaveBeenCalledWith('Log in to save favorites', 'Log in', jasmine.any(Object));
+      expect(snackBar.open).toHaveBeenCalledWith('Log in to save favorites', 'Log in', expect.any(Object));
     });
   });
 });

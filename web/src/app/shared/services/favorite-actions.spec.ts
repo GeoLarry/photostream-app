@@ -1,3 +1,4 @@
+import type { MockOf } from '../testing/mock-of';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarRef, TextOnlySnackBar } from '@angular/material/snack-bar';
@@ -13,15 +14,19 @@ describe('FavoriteActions', () => {
   };
 
   let actions: FavoriteActions;
-  let favorites: jasmine.SpyObj<FavoritesService>;
-  let snackBar: jasmine.SpyObj<MatSnackBar>;
+  let favorites: MockOf<FavoritesService, 'toggle'>;
+  let snackBar: MockOf<MatSnackBar, 'open'>;
   let snackAction: Subject<void>;
 
   beforeEach(() => {
-    favorites = jasmine.createSpyObj<FavoritesService>('FavoritesService', ['toggle']);
-    snackBar = jasmine.createSpyObj<MatSnackBar>('MatSnackBar', ['open']);
+    favorites = {
+      toggle: vi.fn().mockName('FavoritesService.toggle')
+    };
+    snackBar = {
+      open: vi.fn().mockName('MatSnackBar.open')
+    };
     snackAction = new Subject<void>();
-    snackBar.open.and.returnValue({ onAction: () => snackAction.asObservable() } as MatSnackBarRef<TextOnlySnackBar>);
+    snackBar.open.mockReturnValue({ onAction: () => snackAction.asObservable() } as MatSnackBarRef<TextOnlySnackBar>);
 
     TestBed.configureTestingModule({
       providers: [
@@ -34,38 +39,38 @@ describe('FavoriteActions', () => {
   });
 
   it('confirms an added favorite', async () => {
-    favorites.toggle.and.resolveTo('added');
+    favorites.toggle.mockResolvedValue('added');
     await actions.toggle(photo);
-    expect(snackBar.open).toHaveBeenCalledWith('Added to Favorites! ❤️', 'Close', jasmine.any(Object));
+    expect(snackBar.open).toHaveBeenCalledWith('Added to Favorites! ❤️', 'Close', expect.any(Object));
   });
 
   it('confirms a removed favorite', async () => {
-    favorites.toggle.and.resolveTo('removed');
+    favorites.toggle.mockResolvedValue('removed');
     await actions.toggle(photo);
-    expect(snackBar.open).toHaveBeenCalledWith('Removed from Favorites!', 'Close', jasmine.any(Object));
+    expect(snackBar.open).toHaveBeenCalledWith('Removed from Favorites!', 'Close', expect.any(Object));
   });
 
   it('asks a visitor to log in and brings them back afterwards', async () => {
     const router = TestBed.inject(Router);
-    spyOnProperty(router, 'url').and.returnValue('/photos/10');
-    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
-    favorites.toggle.and.resolveTo('login-required');
+    vi.spyOn(router, 'url', 'get').mockReturnValue('/photos/10');
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    favorites.toggle.mockResolvedValue('login-required');
 
     await actions.toggle(photo);
-    expect(snackBar.open).toHaveBeenCalledWith('Log in to save favorites', 'Log in', jasmine.any(Object));
+    expect(snackBar.open).toHaveBeenCalledWith('Log in to save favorites', 'Log in', expect.any(Object));
 
     snackAction.next();
     expect(navigate).toHaveBeenCalledWith(['/login'], { queryParams: { returnUrl: '/photos/10' } });
   });
 
   it('says so when the change could not be saved', async () => {
-    favorites.toggle.and.rejectWith(new Error('500'));
+    favorites.toggle.mockRejectedValue(new Error('500'));
     await actions.toggle(photo);
-    expect(snackBar.open).toHaveBeenCalledWith("Couldn't update your favorites. Please try again.", 'Close', jasmine.any(Object));
+    expect(snackBar.open).toHaveBeenCalledWith("Couldn't update your favorites. Please try again.", 'Close', expect.any(Object));
   });
 
   it('stays quiet for a click while the previous one is saving', async () => {
-    favorites.toggle.and.resolveTo('busy');
+    favorites.toggle.mockResolvedValue('busy');
     await actions.toggle(photo);
     expect(snackBar.open).not.toHaveBeenCalled();
   });

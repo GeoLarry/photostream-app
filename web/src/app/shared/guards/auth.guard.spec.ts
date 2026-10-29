@@ -7,8 +7,7 @@ import { AuthService } from '../services/auth.service';
 describe('authGuard', () => {
   const isAuthenticated = signal(false);
 
-  const run = () => TestBed.runInInjectionContext(() =>
-    authGuard({} as ActivatedRouteSnapshot, { url: '/favorites' } as RouterStateSnapshot));
+  const run = () => TestBed.runInInjectionContext(() => authGuard({} as ActivatedRouteSnapshot, { url: '/favorites' } as RouterStateSnapshot));
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -18,7 +17,7 @@ describe('authGuard', () => {
 
   it('lets signed-in users in', () => {
     isAuthenticated.set(true);
-    expect(run()).toBeTrue();
+    expect(run()).toBe(true);
   });
 
   it('sends visitors to the login page with a way back', () => {

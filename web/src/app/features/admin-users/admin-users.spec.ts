@@ -1,3 +1,4 @@
+import type { MockOf } from '../../shared/testing/mock-of';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -16,15 +17,16 @@ describe('AdminUsers', () => {
   });
 
   let fixture: ComponentFixture<AdminUsers>;
-  let admin: jasmine.SpyObj<AdminUsersService> & { page: ReturnType<typeof signal<PagedResponse<UserSummary> | null>> };
+  let admin: MockOf<AdminUsersService, 'load' | 'deactivate' | 'reactivate' | 'confirmEmail'> & {
+    page: ReturnType<typeof signal<PagedResponse<UserSummary> | null>>;
+  };
   let permissions: ReturnType<typeof signal<string[]>>;
-  let snackBar: jasmine.SpyObj<MatSnackBar>;
-  let dialog: jasmine.SpyObj<MatDialog>;
+  let snackBar: MockOf<MatSnackBar, 'open'>;
+  let dialog: MockOf<MatDialog, 'open'>;
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
   const row = (i: number) => (fixture.nativeElement as HTMLElement).querySelectorAll('tr.mat-mdc-row')[i] as HTMLElement;
-  const button = (r: HTMLElement, label: string) =>
-    Array.from(r.querySelectorAll('button')).find(b => b.textContent?.trim() === label);
+  const button = (r: HTMLElement, label: string) => Array.from(r.querySelectorAll('button')).find(b => b.textContent?.trim() === label);
 
   async function render(users: UserSummary[]) {
     admin.page.set({ items: users, totalCount: users.length, pageNumber: 1, pageSize: 10 });
@@ -34,18 +36,25 @@ describe('AdminUsers', () => {
 
   beforeEach(async () => {
     const page = signal<PagedResponse<UserSummary> | null>(null);
-    admin = Object.assign(
-      jasmine.createSpyObj<AdminUsersService>('AdminUsersService', ['load', 'deactivate', 'reactivate', 'confirmEmail']),
-      {
-        page,
-        query: signal<UserQuery>({ pageNumber: 1, pageSize: 10, search: '' }).asReadonly(),
-        isLoading: signal(false).asReadonly(),
-        loadFailed: signal(false).asReadonly(),
-      });
-    admin.load.and.resolveTo();
+    admin = Object.assign({
+      load: vi.fn().mockName('AdminUsersService.load'),
+      deactivate: vi.fn().mockName('AdminUsersService.deactivate'),
+      reactivate: vi.fn().mockName('AdminUsersService.reactivate'),
+      confirmEmail: vi.fn().mockName('AdminUsersService.confirmEmail')
+    }, {
+      page,
+      query: signal<UserQuery>({ pageNumber: 1, pageSize: 10, search: '' }).asReadonly(),
+      isLoading: signal(false).asReadonly(),
+      loadFailed: signal(false).asReadonly(),
+    });
+    admin.load.mockResolvedValue();
     permissions = signal(['Users.View', 'Users.Edit', 'Users.Delete']);
-    snackBar = jasmine.createSpyObj<MatSnackBar>('MatSnackBar', ['open']);
-    dialog = jasmine.createSpyObj<MatDialog>('MatDialog', ['open']);
+    snackBar = {
+      open: vi.fn().mockName('MatSnackBar.open')
+    };
+    dialog = {
+      open: vi.fn().mockName('MatDialog.open')
+    };
 
     await TestBed.configureTestingModule({
       imports: [AdminUsers],
@@ -81,7 +90,7 @@ describe('AdminUsers', () => {
   it('offers only the actions that apply to each user', async () => {
     await render([user(1), user(2), user(3, { isActive: false, emailConfirmed: false })]);
 
-    expect(button(row(0), 'Deactivate')).withContext('not on yourself').toBeUndefined();
+    expect(button(row(0), 'Deactivate'), 'not on yourself').toBeUndefined();
     expect(row(0).textContent).toContain('(you)');
     expect(button(row(1), 'Deactivate')).toBeDefined();
     expect(button(row(1), 'Confirm email')).toBeUndefined();
@@ -100,18 +109,18 @@ describe('AdminUsers', () => {
   });
 
   it('deactivates a user and confirms it', async () => {
-    admin.deactivate.and.resolveTo();
+    admin.deactivate.mockResolvedValue();
     await render([user(2)]);
 
     button(row(0), 'Deactivate')!.click();
     await fixture.whenStable();
 
-    expect(admin.deactivate).toHaveBeenCalledWith(jasmine.objectContaining({ id: 2 }));
-    expect(snackBar.open).toHaveBeenCalledWith('user2 can no longer sign in.', 'Close', jasmine.any(Object));
+    expect(admin.deactivate).toHaveBeenCalledWith(expect.objectContaining({ id: 2 }));
+    expect(snackBar.open).toHaveBeenCalledWith('user2 can no longer sign in.', 'Close', expect.any(Object));
   });
 
   it("shows the API's reason when an action is refused", async () => {
-    admin.deactivate.and.rejectWith(new HttpErrorResponse({
+    admin.deactivate.mockRejectedValue(new HttpErrorResponse({
       status: 400, error: { message: 'This account holds a protected role and cannot be deactivated.' },
     }));
     await render([user(2)]);
@@ -119,7 +128,7 @@ describe('AdminUsers', () => {
     button(row(0), 'Deactivate')!.click();
     await fixture.whenStable();
 
-    expect(snackBar.open).toHaveBeenCalledWith('This account holds a protected role and cannot be deactivated.', 'Close', jasmine.any(Object));
+    expect(snackBar.open).toHaveBeenCalledWith('This account holds a protected role and cannot be deactivated.', 'Close', expect.any(Object));
   });
 
   it("opens a user's favorites", async () => {
@@ -127,25 +136,25 @@ describe('AdminUsers', () => {
 
     button(row(0), 'Favorites')!.click();
 
-    expect(dialog.open).toHaveBeenCalledWith(UserFavoritesDialog, jasmine.objectContaining({ data: jasmine.objectContaining({ id: 2 }) }));
+    expect(dialog.open).toHaveBeenCalledWith(UserFavoritesDialog, expect.objectContaining({ data: expect.objectContaining({ id: 2 }) }));
   });
 
   it('searches after typing stops, from the first page', async () => {
-    jasmine.clock().install();
-    jasmine.clock().mockDate(); // debounceTime also reads Date.now()
+    vi.useFakeTimers();
     try {
       fixture.detectChanges(); // ngOnInit
-      admin.load.calls.reset();
+      admin.load.mockClear();
       fixture.componentInstance.search.setValue('mar');
       fixture.componentInstance.search.setValue('maria');
-      jasmine.clock().tick(299);
+      vi.advanceTimersByTime(299);
       expect(admin.load).not.toHaveBeenCalled();
 
-      jasmine.clock().tick(1);
-      expect(admin.load).toHaveBeenCalledOnceWith({ search: 'maria', pageNumber: 1 });
+      vi.advanceTimersByTime(1);
+      expect(admin.load).toHaveBeenCalledTimes(1);
+      expect(admin.load).toHaveBeenCalledWith({ search: 'maria', pageNumber: 1 });
     } finally {
       fixture.destroy();
-      jasmine.clock().uninstall();
+      vi.useRealTimers();
     }
   });
 

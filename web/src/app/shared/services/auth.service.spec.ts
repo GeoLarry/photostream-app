@@ -11,7 +11,7 @@ describe('AuthService', () => {
     id: 7, username: 'jane', email: 'jane@example.com', firstName: 'Jane', lastName: null,
     roles: [{ id: 3, name: 'User' }], permissions: ['Favorites.View', 'Favorites.Create'],
   };
-  const inOneHour = () => new Date(Date.now() + 3600_000).toISOString();
+  const inOneHour = () => new Date(Date.now() + 3600000).toISOString();
   const authResponse = (): AuthResponse => ({ token: 'jwt-token', expiresAtUtc: inOneHour(), user });
 
   let httpMock: HttpTestingController;
@@ -30,7 +30,7 @@ describe('AuthService', () => {
 
   it('starts signed out', () => {
     const service = createService();
-    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.isAuthenticated()).toBe(false);
     expect(service.token()).toBeNull();
   });
 
@@ -43,7 +43,7 @@ describe('AuthService', () => {
     req.flush(authResponse());
     await login;
 
-    expect(service.isAuthenticated()).toBeTrue();
+    expect(service.isAuthenticated()).toBe(true);
     expect(service.token()).toBe('jwt-token');
     expect(service.currentUser()?.username).toBe('jane');
     expect(localStorage.getItem('auth_session')).toContain('jwt-token');
@@ -55,8 +55,8 @@ describe('AuthService', () => {
     httpMock.expectOne(`${authUrl}/login`).flush(authResponse());
     await login;
 
-    expect(service.hasPermission('Favorites.View')).toBeTrue();
-    expect(service.hasPermission('Users.View')).toBeFalse();
+    expect(service.hasPermission('Favorites.View')).toBe(true);
+    expect(service.hasPermission('Users.View')).toBe(false);
   });
 
   it('does not sign in on register and returns the API message', async () => {
@@ -66,7 +66,7 @@ describe('AuthService', () => {
     httpMock.expectOne(`${authUrl}/register`).flush({ message: 'Check your email.' }, { status: 202, statusText: 'Accepted' });
 
     expect(await register).toBe('Check your email.');
-    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.isAuthenticated()).toBe(false);
   });
 
   it('signs in when the email is confirmed', async () => {
@@ -78,7 +78,7 @@ describe('AuthService', () => {
     req.flush(authResponse());
     await confirm;
 
-    expect(service.isAuthenticated()).toBeTrue();
+    expect(service.isAuthenticated()).toBe(true);
   });
 
   it('asks for a new confirmation link', async () => {
@@ -125,7 +125,7 @@ describe('AuthService', () => {
     await restore;
 
     expect(service.token()).toBe('stored');
-    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.isAuthenticated()).toBe(false);
   });
 
   it('ignores an expired or corrupt stored session without calling the API', async () => {
@@ -146,7 +146,7 @@ describe('AuthService', () => {
 
     service.logout();
 
-    expect(service.isAuthenticated()).toBeFalse();
+    expect(service.isAuthenticated()).toBe(false);
     expect(service.token()).toBeNull();
     expect(localStorage.getItem('auth_session')).toBeNull();
   });

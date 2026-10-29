@@ -17,7 +17,7 @@ describe('authInterceptor', () => {
     const login = auth.login({ username: 'jane', password: 'Password1' });
     httpMock.expectOne(`${environment.apiUrl}/api/auth/login`).flush({
       token: 'jwt-token',
-      expiresAtUtc: new Date(Date.now() + 3600_000).toISOString(),
+      expiresAtUtc: new Date(Date.now() + 3600000).toISOString(),
       user: { id: 1, username: 'jane', email: 'j@example.com', firstName: null, lastName: null, roles: [], permissions: [] },
     });
     await login;
@@ -55,7 +55,7 @@ describe('authInterceptor', () => {
     http.get('https://picsum.photos/v2/list').subscribe();
 
     const req = httpMock.expectOne('https://picsum.photos/v2/list');
-    expect(req.request.headers.has('Authorization')).toBeFalse();
+    expect(req.request.headers.has('Authorization')).toBe(false);
     req.flush([]);
   });
 
@@ -63,28 +63,28 @@ describe('authInterceptor', () => {
     http.get(`${environment.apiUrl}/health`).subscribe();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/health`);
-    expect(req.request.headers.has('Authorization')).toBeFalse();
+    expect(req.request.headers.has('Authorization')).toBe(false);
     req.flush({});
   });
 
   it('signs out and goes to login on a 401 while signed in', async () => {
     await signIn();
-    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     const request = firstValueFrom(http.get(`${environment.apiUrl}/api/favorites`));
     httpMock.expectOne(`${environment.apiUrl}/api/favorites`).flush(null, { status: 401, statusText: 'Unauthorized' });
-    await expectAsync(request).toBeRejected();
+    await expect(request).rejects.toThrow();
 
-    expect(auth.isAuthenticated()).toBeFalse();
-    expect(navigate).toHaveBeenCalledWith(['/login'], jasmine.objectContaining({ queryParams: jasmine.any(Object) }));
+    expect(auth.isAuthenticated()).toBe(false);
+    expect(navigate).toHaveBeenCalledWith(['/login'], expect.objectContaining({ queryParams: expect.any(Object) }));
   });
 
   it('does not redirect on a 401 while signed out, e.g. a wrong password', async () => {
-    const navigate = spyOn(router, 'navigate');
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     const login = auth.login({ username: 'jane', password: 'wrong' });
     httpMock.expectOne(`${environment.apiUrl}/api/auth/login`).flush(null, { status: 401, statusText: 'Unauthorized' });
-    await expectAsync(login).toBeRejected();
+    await expect(login).rejects.toThrow();
 
     expect(navigate).not.toHaveBeenCalled();
   });

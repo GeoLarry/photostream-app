@@ -11,8 +11,7 @@ import { environment } from '../../../environments/environment';
 
 describe('FavoritesService', () => {
   const url = `${environment.apiUrl}/api/favorites`;
-  const user = (id: number): CurrentUser =>
-    ({ id, username: `u${id}`, email: `u${id}@example.com`, firstName: null, lastName: null, roles: [], permissions: [] });
+  const user = (id: number): CurrentUser => ({ id, username: `u${id}`, email: `u${id}@example.com`, firstName: null, lastName: null, roles: [], permissions: [] });
   const photo = (id: string): Photo => ({
     id, author: 'John Doe', width: 5000, height: 3333,
     url: `https://unsplash.com/photos/${id}`, download_url: `https://picsum.photos/id/${id}/5000/3333`,
@@ -76,7 +75,7 @@ describe('FavoritesService', () => {
 
     expect(service.favorites().map(p => p.id)).toEqual(['10', '20']);
     expect(service.getById('10')).toEqual(photo('10'));
-    expect(service.isFavorite('20')).toBeTrue();
+    expect(service.isFavorite('20')).toBe(true);
   });
 
   it('clears the favorites when the user signs out', async () => {
@@ -110,13 +109,13 @@ describe('FavoritesService', () => {
     httpMock.expectOne(url).flush(null, { status: 500, statusText: 'Server Error' });
     await Promise.resolve();
     await Promise.resolve();
-    expect(service.loadFailed()).toBeTrue();
+    expect(service.loadFailed()).toBe(true);
 
     const retry = service.load();
     httpMock.expectOne(url).flush([response('10')]);
     await retry;
 
-    expect(service.loadFailed()).toBeFalse();
+    expect(service.loadFailed()).toBe(false);
     expect(service.favorites().length).toBe(1);
   });
 
@@ -130,7 +129,7 @@ describe('FavoritesService', () => {
     await signIn(1);
 
     const toggling = service.toggle(photo('10'));
-    expect(service.isFavorite('10')).toBeTrue(); // before the API answers
+    expect(service.isFavorite('10')).toBe(true); // before the API answers
 
     const req = httpMock.expectOne(`${url}/10`);
     expect(req.request.method).toBe('PUT');
@@ -150,7 +149,7 @@ describe('FavoritesService', () => {
     const toggling = service.toggle(photo('10'));
     httpMock.expectOne(`${url}/10`).flush(null, { status: 500, statusText: 'Server Error' });
 
-    await expectAsync(toggling).toBeRejected();
+    await expect(toggling).rejects.toThrow();
     expect(service.favorites().map(p => p.id)).toEqual(['20']);
   });
 
@@ -159,7 +158,7 @@ describe('FavoritesService', () => {
     await signIn(1, [response('10'), response('20')]);
 
     const first = service.toggle(photo('10'));
-    expect(service.isFavorite('10')).toBeFalse();
+    expect(service.isFavorite('10')).toBe(false);
     const req = httpMock.expectOne(`${url}/10`);
     expect(req.request.method).toBe('DELETE');
     req.flush(null, { status: 204, statusText: 'No Content' });
@@ -178,8 +177,8 @@ describe('FavoritesService', () => {
     const toggling = service.toggle(photo('10'));
     httpMock.expectOne(`${url}/10`).flush(null, { status: 500, statusText: 'Server Error' });
 
-    await expectAsync(toggling).toBeRejected();
-    expect(service.isFavorite('10')).toBeTrue();
+    await expect(toggling).rejects.toThrow();
+    expect(service.isFavorite('10')).toBe(true);
   });
 
   it('ignores a second click while the first is still saving', async () => {
@@ -191,6 +190,6 @@ describe('FavoritesService', () => {
 
     httpMock.expectOne(`${url}/10`).flush(response('10'));
     expect(await first).toBe('added');
-    expect(service.isFavorite('10')).toBeTrue();
+    expect(service.isFavorite('10')).toBe(true);
   });
 });

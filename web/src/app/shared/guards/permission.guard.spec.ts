@@ -6,8 +6,7 @@ import { AuthService } from '../services/auth.service';
 describe('permissionGuard', () => {
   let permissions: string[];
 
-  const run = () => TestBed.runInInjectionContext(() =>
-    permissionGuard('Users.View')({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
+  const run = () => TestBed.runInInjectionContext(() => permissionGuard('Users.View')({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
 
   beforeEach(() => {
     permissions = [];
@@ -18,7 +17,7 @@ describe('permissionGuard', () => {
 
   it('lets in users with the permission', () => {
     permissions = ['Users.View'];
-    expect(run()).toBeTrue();
+    expect(run()).toBe(true);
   });
 
   it('sends everyone else to the photostream', () => {
