@@ -37,7 +37,7 @@ describe('Photos', () => {
         { provide: FavoritesService, useValue: favorites },
         { provide: MatSnackBar, useValue: snackBar },
         provideHttpClient(),
-        provideHttpClientTesting(), // Modern functional testing HTTP client provider
+        provideHttpClientTesting(),
         { provide: IMAGE_LOADER, useValue: picsumLoader },
         provideRouter([])
       ]

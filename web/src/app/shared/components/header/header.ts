@@ -6,7 +6,6 @@ import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-header',
-  standalone: true,
   imports: [
     RouterLink,
     RouterLinkActive,
@@ -24,7 +23,7 @@ export class Header {
   user = this.auth.currentUser;
   canAdminUsers = computed(() => this.auth.hasPermission('Users.View'));
 
-  logout() {
+  logout(): void {
     this.auth.logout();
     this.router.navigateByUrl('/');
   }

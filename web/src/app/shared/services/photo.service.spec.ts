@@ -28,7 +28,7 @@ describe('PhotoService', () => {
         PhotoService,
         { provide: FavoritesService, useValue: favorites },
         provideHttpClient(),
-        provideHttpClientTesting() // Modern functional testing HTTP client provider
+        provideHttpClientTesting()
       ]
     });
 
