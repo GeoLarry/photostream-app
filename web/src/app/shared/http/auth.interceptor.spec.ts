@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -26,7 +26,7 @@ describe('authInterceptor', () => {
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(withInterceptors([authInterceptor])), provideHttpClientTesting(), provideRouter([])],
+      providers: [provideHttpClient(withXhr(), withInterceptors([authInterceptor])), provideHttpClientTesting(), provideRouter([])],
     });
     http = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);

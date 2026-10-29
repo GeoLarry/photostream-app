@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, resource } from '@angular/core';
+import { Component, computed, inject, input, resource, ChangeDetectionStrategy } from '@angular/core';
 import { Location, NgOptimizedImage } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
@@ -14,6 +14,7 @@ import { scaledHeight } from '../../shared/images/picsum-loader';
   selector: 'app-photo-details',
   imports: [NgOptimizedImage, MatButton, MatIcon, MatProgressSpinner],
   templateUrl: './photo-details.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './photo-details.scss',
 })
 export class PhotoDetails {

@@ -1,4 +1,4 @@
-import { Component, inject, input, OnInit, signal } from '@angular/core';
+import { Component, inject, input, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCard } from '@angular/material/card';
@@ -11,6 +11,7 @@ import { apiErrorMessage } from '../../shared/http/api-error';
 @Component({
   selector: 'app-confirm-email',
   imports: [RouterLink, MatCard, MatButton, MatProgressSpinner],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './confirm-email.html',
 })
 export class ConfirmEmail implements OnInit {

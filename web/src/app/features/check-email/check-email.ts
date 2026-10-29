@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
@@ -15,6 +15,7 @@ export const RESEND_COOLDOWN_SECONDS = 60;
 @Component({
   selector: 'app-check-email',
   imports: [ReactiveFormsModule, RouterLink, MatCard, MatFormField, MatLabel, MatInput, MatError, MatButton],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './check-email.html',
 })
 export class CheckEmail implements OnInit {
