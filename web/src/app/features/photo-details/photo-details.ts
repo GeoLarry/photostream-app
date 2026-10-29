@@ -48,7 +48,7 @@ export class PhotoDetails {
 
   // Go back within the app; when the page was opened directly, fall back to the photostream
   goBack() {
-    if (this.router.lastSuccessfulNavigation?.previousNavigation) {
+    if (this.router.lastSuccessfulNavigation()?.previousNavigation) {
       this.location.back();
     } else {
       this.router.navigate(['/']);
