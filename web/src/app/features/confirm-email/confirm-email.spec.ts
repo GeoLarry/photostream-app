@@ -1,3 +1,4 @@
+import type { MockOf } from '../../shared/testing/mock-of';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -8,9 +9,9 @@ import { AuthService } from '../../shared/services/auth.service';
 
 describe('ConfirmEmail', () => {
   let fixture: ComponentFixture<ConfirmEmail>;
-  let auth: jasmine.SpyObj<AuthService>;
+  let auth: MockOf<AuthService, 'confirmEmail'>;
   let router: Router;
-  let snackBar: jasmine.SpyObj<MatSnackBar>;
+  let snackBar: MockOf<MatSnackBar, 'open'>;
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
@@ -22,8 +23,12 @@ describe('ConfirmEmail', () => {
   }
 
   beforeEach(async () => {
-    auth = jasmine.createSpyObj<AuthService>('AuthService', ['confirmEmail']);
-    snackBar = jasmine.createSpyObj<MatSnackBar>('MatSnackBar', ['open']);
+    auth = {
+      confirmEmail: vi.fn().mockName('AuthService.confirmEmail')
+    };
+    snackBar = {
+      open: vi.fn().mockName('MatSnackBar.open')
+    };
     await TestBed.configureTestingModule({
       imports: [ConfirmEmail],
       providers: [
@@ -35,11 +40,11 @@ describe('ConfirmEmail', () => {
     }).compileComponents();
 
     router = TestBed.inject(Router);
-    spyOn(router, 'navigateByUrl').and.resolveTo(true);
+    vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
   });
 
   it('confirms the email, welcomes the user and opens the photostream', async () => {
-    auth.confirmEmail.and.resolveTo();
+    auth.confirmEmail.mockResolvedValue();
 
     await create('link-token');
 
@@ -49,7 +54,7 @@ describe('ConfirmEmail', () => {
   });
 
   it('explains an invalid or expired link and offers a new one', async () => {
-    auth.confirmEmail.and.rejectWith(new HttpErrorResponse({ status: 400, error: { message: 'This link is invalid or has expired.' } }));
+    auth.confirmEmail.mockRejectedValue(new HttpErrorResponse({ status: 400, error: { message: 'This link is invalid or has expired.' } }));
 
     await create('old-token');
     fixture.detectChanges();

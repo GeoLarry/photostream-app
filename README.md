@@ -17,9 +17,9 @@ A full-stack photo gallery: browse an endless stream of photos and keep your fav
 
 | Part | Technologies |
 |---|---|
-| Frontend (`web/`) | Angular, standalone components, signals, zoneless change detection, Angular Material |
+| Frontend (`web/`) | Angular 22, standalone components, signals, zoneless change detection, OnPush, Angular Material |
 | Backend (`api/`) | .NET 10 Minimal API, EF Core (SQLite / SQL Server), JWT, permission-based authorization, Bogus seeding |
-| Tests | Angular unit tests, xUnit integration tests over the real HTTP pipeline |
+| Tests | Vitest unit tests for the Angular app (jsdom), xUnit integration tests over the real HTTP pipeline |
 | CI | GitHub Actions, one workflow per folder |
 
 ## Repository layout
@@ -76,5 +76,5 @@ App on http://localhost:4200.
 - [x] Favorites stored per user on the API
 - [x] Login and registration in the frontend, with email confirmation
 - [x] Admin page for users
-- [ ] Upgrade to the latest Angular and Vitest
+- [x] Upgrade to the latest Angular and Vitest
 - [ ] Live demo

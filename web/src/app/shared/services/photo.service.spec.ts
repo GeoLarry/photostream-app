@@ -54,7 +54,7 @@ describe('PhotoService', () => {
 
     beforeEach(() => {
       // Start page = 1 + floor(0.5 * 30) = 16
-      spyOn(Math, 'random').and.returnValue(0.5);
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
     });
 
     it('should start on a random page and then load pages sequentially', async () => {
@@ -100,7 +100,7 @@ describe('PhotoService', () => {
       service.loadNextPage();
       httpMock.expectOne(listUrl(16)).flush([photo('1')]);
       await loading;
-      expect(service.isLoading()).toBeFalse();
+      expect(service.isLoading()).toBe(false);
     });
   });
 

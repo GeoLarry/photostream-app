@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection, signal } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
@@ -9,14 +10,18 @@ describe('Header', () => {
   let fixture: ComponentFixture<Header>;
   const currentUser = signal<CurrentUser | null>(null);
   const permissions = signal<string[]>([]);
-  let auth: { currentUser: typeof currentUser; hasPermission: (p: string) => boolean; logout: jasmine.Spy };
+  let auth: {
+    currentUser: typeof currentUser;
+    hasPermission: (p: string) => boolean;
+    logout: Mock;
+  };
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
   beforeEach(async () => {
     currentUser.set(null);
     permissions.set([]);
-    auth = { currentUser, hasPermission: p => permissions().includes(p), logout: jasmine.createSpy('logout') };
+    auth = { currentUser, hasPermission: p => permissions().includes(p), logout: vi.fn().mockName('logout') };
     await TestBed.configureTestingModule({
       imports: [Header],
       providers: [provideZonelessChangeDetection(), provideRouter([]), { provide: AuthService, useValue: auth }],
@@ -35,7 +40,7 @@ describe('Header', () => {
   it('shows the user and logs out', async () => {
     currentUser.set({ id: 1, username: 'jane', email: 'j@example.com', firstName: 'Jane', lastName: null, roles: [], permissions: [] });
     fixture.detectChanges();
-    const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
 
     expect(text()).toContain('Jane');
     expect(text()).not.toContain('Sign up');

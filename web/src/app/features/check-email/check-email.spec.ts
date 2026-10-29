@@ -1,3 +1,4 @@
+import type { MockOf } from '../../shared/testing/mock-of';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -8,7 +9,7 @@ import { AuthService } from '../../shared/services/auth.service';
 describe('CheckEmail', () => {
   let fixture: ComponentFixture<CheckEmail>;
   let component: CheckEmail;
-  let auth: jasmine.SpyObj<AuthService>;
+  let auth: MockOf<AuthService, 'resendConfirmation'>;
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
 
@@ -20,7 +21,9 @@ describe('CheckEmail', () => {
   }
 
   beforeEach(async () => {
-    auth = jasmine.createSpyObj<AuthService>('AuthService', ['resendConfirmation']);
+    auth = {
+      resendConfirmation: vi.fn().mockName('AuthService.resendConfirmation')
+    };
     await TestBed.configureTestingModule({
       imports: [CheckEmail],
       providers: [provideZonelessChangeDetection(), provideRouter([]), { provide: AuthService, useValue: auth }],
@@ -29,7 +32,7 @@ describe('CheckEmail', () => {
 
   it('right after sign-up, shows the address and waits before allowing a resend', () => {
     // A mocked clock also stops the zoneless scheduler, so this test renders with detectChanges().
-    jasmine.clock().install();
+    vi.useFakeTimers();
     try {
       fixture = TestBed.createComponent(CheckEmail);
       component = fixture.componentInstance;
@@ -40,18 +43,18 @@ describe('CheckEmail', () => {
       expect(component.emailControl.value).toBe('jane@example.com');
       expect(component.cooldown()).toBe(RESEND_COOLDOWN_SECONDS);
 
-      jasmine.clock().tick(RESEND_COOLDOWN_SECONDS * 1000);
+      vi.advanceTimersByTime(RESEND_COOLDOWN_SECONDS * 1000);
       fixture.detectChanges();
       expect(component.cooldown()).toBe(0);
       expect(text()).toContain('Resend email');
     } finally {
       fixture.destroy(); // stops the interval before the real clock comes back
-      jasmine.clock().uninstall();
+      vi.useRealTimers();
     }
   });
 
   it('sends a new link and shows the API message', async () => {
-    auth.resendConfirmation.and.resolveTo('If the address needs confirming, we sent it a link.');
+    auth.resendConfirmation.mockResolvedValue('If the address needs confirming, we sent it a link.');
     await create();
     component.emailControl.setValue('jane@example.com');
 
@@ -75,7 +78,7 @@ describe('CheckEmail', () => {
   });
 
   it('shows an error when the request fails', async () => {
-    auth.resendConfirmation.and.rejectWith(new HttpErrorResponse({ status: 429, error: { message: 'Too many attempts. Please try again later.' } }));
+    auth.resendConfirmation.mockRejectedValue(new HttpErrorResponse({ status: 429, error: { message: 'Too many attempts. Please try again later.' } }));
     await create();
     component.emailControl.setValue('jane@example.com');
 

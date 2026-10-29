@@ -99,7 +99,7 @@ describe('PhotoDetails', () => {
   });
 
   it('should add and remove the favorite without leaving the page', async () => {
-    const navigate = spyOn(TestBed.inject(Router), 'navigate');
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     fixture.componentRef.setInput('id', '7');
     fixture.detectChanges();
     httpMock.expectOne(infoUrl).flush(photo);
@@ -107,13 +107,13 @@ describe('PhotoDetails', () => {
 
     toggle().click();
     await settle();
-    expect(favorites.isFavorite('7')).toBeTrue();
+    expect(favorites.isFavorite('7')).toBe(true);
     expect(toggle().getAttribute('aria-pressed')).toBe('true');
     expect(toggle().textContent).toContain('Remove from favorites');
 
     toggle().click();
     await settle();
-    expect(favorites.isFavorite('7')).toBeFalse();
+    expect(favorites.isFavorite('7')).toBe(false);
     expect(toggle().textContent).toContain('Add to favorites');
     expect(text()).toContain('Alejandro Escamilla');
     expect(navigate).not.toHaveBeenCalled();
@@ -122,7 +122,7 @@ describe('PhotoDetails', () => {
   it('should fall back to the photostream when going back from a directly opened page', async () => {
     favorites.list.set([photo]);
     await open('7');
-    const navigate = spyOn(TestBed.inject(Router), 'navigate');
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
     component.goBack();
 

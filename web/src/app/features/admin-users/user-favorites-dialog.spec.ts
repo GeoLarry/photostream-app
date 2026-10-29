@@ -1,3 +1,4 @@
+import type { MockOf } from '../../shared/testing/mock-of';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { IMAGE_LOADER } from '@angular/common';
@@ -9,7 +10,7 @@ import { Photo } from '../../models/photo.model';
 
 describe('UserFavoritesDialog', () => {
   let fixture: ComponentFixture<UserFavoritesDialog>;
-  let admin: jasmine.SpyObj<AdminUsersService>;
+  let admin: MockOf<AdminUsersService, 'favoritesOf'>;
 
   const photo: Photo = {
     id: '10', author: 'Alejandro Escamilla', width: 5000, height: 3333,
@@ -32,26 +33,28 @@ describe('UserFavoritesDialog', () => {
   }
 
   beforeEach(() => {
-    admin = jasmine.createSpyObj<AdminUsersService>('AdminUsersService', ['favoritesOf']);
+    admin = {
+      favoritesOf: vi.fn().mockName('AdminUsersService.favoritesOf')
+    };
   });
 
   it("shows the user's favorites", async () => {
-    admin.favoritesOf.and.resolveTo([photo]);
+    admin.favoritesOf.mockResolvedValue([photo]);
     await open();
 
     expect(text()).toContain('Favorites of maria');
     expect(text()).toContain('Alejandro Escamilla');
-    expect(admin.favoritesOf).toHaveBeenCalledWith(jasmine.objectContaining({ id: 2 }));
+    expect(admin.favoritesOf).toHaveBeenCalledWith(expect.objectContaining({ id: 2 }));
   });
 
   it('says when there are none', async () => {
-    admin.favoritesOf.and.resolveTo([]);
+    admin.favoritesOf.mockResolvedValue([]);
     await open();
     expect(text()).toContain('No favorites yet.');
   });
 
   it('says when they could not be loaded', async () => {
-    admin.favoritesOf.and.rejectWith(new Error('500'));
+    admin.favoritesOf.mockRejectedValue(new Error('500'));
     await open();
     expect(text()).toContain("couldn't load the favorites");
   });

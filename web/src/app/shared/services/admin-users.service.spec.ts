@@ -11,8 +11,7 @@ describe('AdminUsersService', () => {
     id, username: `user${id}`, email: `user${id}@example.com`, firstName: null, lastName: null,
     isActive: true, emailConfirmed: true, createdAtUtc: '2026-10-28T10:00:00Z', roles: [{ id: 3, name: 'User' }], ...changes,
   });
-  const page = (items: UserSummary[], totalCount = items.length): PagedResponse<UserSummary> =>
-    ({ items, totalCount, pageNumber: 1, pageSize: 10 });
+  const page = (items: UserSummary[], totalCount = items.length): PagedResponse<UserSummary> => ({ items, totalCount, pageNumber: 1, pageSize: 10 });
 
   let service: AdminUsersService;
   let httpMock: HttpTestingController;
@@ -36,12 +35,12 @@ describe('AdminUsersService', () => {
     const req = httpMock.expectOne(r => r.url === url);
     expect(req.request.params.get('pageNumber')).toBe('1');
     expect(req.request.params.get('pageSize')).toBe('10');
-    expect(req.request.params.has('search')).toBeFalse();
+    expect(req.request.params.has('search')).toBe(false);
     req.flush(page([user(1)], 42));
     await loading;
 
     expect(service.page()?.totalCount).toBe(42);
-    expect(service.isLoading()).toBeFalse();
+    expect(service.isLoading()).toBe(false);
   });
 
   it('keeps the query between calls and sends a trimmed search', async () => {
@@ -78,7 +77,7 @@ describe('AdminUsersService', () => {
     httpMock.expectOne(r => r.url === url).flush(null, { status: 500, statusText: 'Server Error' });
     await loading;
 
-    expect(service.loadFailed()).toBeTrue();
+    expect(service.loadFailed()).toBe(true);
   });
 
   it('deactivates and reactivates a user, updating the row', async () => {
@@ -89,12 +88,12 @@ describe('AdminUsersService', () => {
     expect(del.request.method).toBe('DELETE');
     del.flush({ message: 'User deactivated.' });
     await deactivating;
-    expect(service.page()?.items.find(u => u.id === 2)?.isActive).toBeFalse();
+    expect(service.page()?.items.find(u => u.id === 2)?.isActive).toBe(false);
 
     const reactivating = service.reactivate(user(2));
     httpMock.expectOne(`${url}/2/reactivate`).flush({ message: 'User reactivated.' });
     await reactivating;
-    expect(service.page()?.items.find(u => u.id === 2)?.isActive).toBeTrue();
+    expect(service.page()?.items.find(u => u.id === 2)?.isActive).toBe(true);
   });
 
   it('confirms an email by hand', async () => {
@@ -106,7 +105,7 @@ describe('AdminUsersService', () => {
     req.flush({ message: 'Email confirmed.' });
     await confirming;
 
-    expect(service.page()?.items[0].emailConfirmed).toBeTrue();
+    expect(service.page()?.items[0].emailConfirmed).toBe(true);
   });
 
   it('leaves the row as it was when the API refuses', async () => {
@@ -115,15 +114,15 @@ describe('AdminUsersService', () => {
     const deactivating = service.deactivate(user(1));
     httpMock.expectOne(`${url}/1`).flush({ message: 'You cannot deactivate your own account.' }, { status: 400, statusText: 'Bad Request' });
 
-    await expectAsync(deactivating).toBeRejected();
-    expect(service.page()?.items[0].isActive).toBeTrue();
+    await expect(deactivating).rejects.toThrow();
+    expect(service.page()?.items[0].isActive).toBe(true);
   });
 
   it("returns a user's favorites as photos", async () => {
     const loading = service.favoritesOf(user(1));
     httpMock.expectOne(`${url}/1/favorites`).flush([{
-      photoId: '10', author: 'A', width: 10, height: 5, url: 'https://u/10', downloadUrl: 'https://d/10', createdAtUtc: '2026-10-28T10:00:00Z',
-    }]);
+        photoId: '10', author: 'A', width: 10, height: 5, url: 'https://u/10', downloadUrl: 'https://d/10', createdAtUtc: '2026-10-28T10:00:00Z',
+      }]);
 
     expect(await loading).toEqual([{ id: '10', author: 'A', width: 10, height: 5, url: 'https://u/10', download_url: 'https://d/10' }]);
   });

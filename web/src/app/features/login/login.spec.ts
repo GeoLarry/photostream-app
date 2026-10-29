@@ -1,3 +1,4 @@
+import type { MockOf } from '../../shared/testing/mock-of';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -8,21 +9,23 @@ import { AuthService } from '../../shared/services/auth.service';
 describe('Login', () => {
   let fixture: ComponentFixture<Login>;
   let component: Login;
-  let auth: jasmine.SpyObj<AuthService>;
+  let auth: MockOf<AuthService, 'login'>;
   let router: Router;
 
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
   const fill = (username: string, password: string) => component.form.setValue({ username, password });
 
   beforeEach(async () => {
-    auth = jasmine.createSpyObj<AuthService>('AuthService', ['login']);
+    auth = {
+      login: vi.fn().mockName('AuthService.login')
+    };
     await TestBed.configureTestingModule({
       imports: [Login],
       providers: [provideZonelessChangeDetection(), provideRouter([]), { provide: AuthService, useValue: auth }],
     }).compileComponents();
 
     router = TestBed.inject(Router);
-    spyOn(router, 'navigateByUrl').and.resolveTo(true);
+    vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     fixture = TestBed.createComponent(Login);
     component = fixture.componentInstance;
     await fixture.whenStable();
@@ -34,7 +37,7 @@ describe('Login', () => {
   });
 
   it('logs in and goes to the return URL', async () => {
-    auth.login.and.resolveTo();
+    auth.login.mockResolvedValue();
     fixture.componentRef.setInput('returnUrl', '/favorites');
     fill('jane', 'Password1');
 
@@ -45,7 +48,7 @@ describe('Login', () => {
   });
 
   it('ignores a return URL to another site', async () => {
-    auth.login.and.resolveTo();
+    auth.login.mockResolvedValue();
     fixture.componentRef.setInput('returnUrl', 'https://evil.example');
     fill('jane', 'Password1');
 
@@ -55,7 +58,7 @@ describe('Login', () => {
   });
 
   it('shows a clear message for wrong credentials', async () => {
-    auth.login.and.rejectWith(new HttpErrorResponse({ status: 401 }));
+    auth.login.mockRejectedValue(new HttpErrorResponse({ status: 401 }));
     fill('jane', 'wrong');
 
     await component.submit();
@@ -66,7 +69,7 @@ describe('Login', () => {
   });
 
   it('offers to resend the link when the email is not confirmed', async () => {
-    auth.login.and.rejectWith(new HttpErrorResponse({
+    auth.login.mockRejectedValue(new HttpErrorResponse({
       status: 403,
       error: { message: 'Please confirm your email address first.', code: 'EmailNotConfirmed' },
     }));

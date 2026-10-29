@@ -7,8 +7,7 @@ import { AuthService } from '../services/auth.service';
 describe('guestGuard', () => {
   const isAuthenticated = signal(false);
 
-  const run = () => TestBed.runInInjectionContext(() =>
-    guestGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
+  const run = () => TestBed.runInInjectionContext(() => guestGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -18,7 +17,7 @@ describe('guestGuard', () => {
 
   it('lets signed-out visitors in', () => {
     isAuthenticated.set(false);
-    expect(run()).toBeTrue();
+    expect(run()).toBe(true);
   });
 
   it('sends signed-in users to the photostream', () => {
