@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Photos } from './photos';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { PhotoService } from '../../shared/services/photo.service';
 import { FavoritesService } from '../../shared/services/favorites.service';
@@ -30,7 +30,7 @@ describe('Photos', () => {
         PhotoService,
         { provide: FavoritesService, useValue: favorites },
         { provide: MatSnackBar, useValue: snackBar },
-        provideHttpClient(withXhr()),
+        provideHttpClient(),
         provideHttpClientTesting(), // Modern functional testing HTTP client provider
         { provide: IMAGE_LOADER, useValue: picsumLoader },
         provideRouter([])

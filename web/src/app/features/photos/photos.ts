@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, viewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardImage } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
@@ -15,7 +15,6 @@ import { RouterLink } from '@angular/router';
   selector: 'app-photos',
   imports: [NgOptimizedImage, RouterLink, MatCard, MatCardImage, MatIconButton, MatIcon, MatProgressSpinner],
   templateUrl: './photos.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './photos.scss',
 })
 export class Photos implements OnInit, AfterViewInit, OnDestroy {

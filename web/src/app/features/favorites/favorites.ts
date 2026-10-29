@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardImage } from '@angular/material/card';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
@@ -10,7 +10,6 @@ import { NgOptimizedImage } from '@angular/common';
   selector: 'app-favorites',
   imports: [NgOptimizedImage, RouterLink, MatCard, MatCardImage, MatButton, MatProgressSpinner],
   templateUrl: './favorites.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './favorites.scss',
 })
 export class Favorites {

@@ -1,4 +1,4 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
@@ -17,7 +17,6 @@ const PASSWORD_PATTERN = /^(?=.*\p{L})(?=.*\d).{8,128}$/u;
 @Component({
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterLink, MatCard, MatFormField, MatLabel, MatHint, MatInput, MatError, MatButton, MatProgressSpinner],
-  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './register.html',
 })
 export class Register {

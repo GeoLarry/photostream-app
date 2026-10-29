@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PhotoDetails } from './photo-details';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { IMAGE_LOADER } from '@angular/common';
 import { provideRouter, Router } from '@angular/router';
@@ -33,7 +33,7 @@ describe('PhotoDetails', () => {
       providers: [
         PhotoService,
         { provide: FavoritesService, useValue: favorites },
-        provideHttpClient(withXhr()),
+        provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: IMAGE_LOADER, useValue: picsumLoader }

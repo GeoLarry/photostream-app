@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { PhotoService } from './photo.service';
 import { Photo } from '../../models/photo.model';
 import { FavoritesService } from './favorites.service';
@@ -27,7 +27,7 @@ describe('PhotoService', () => {
       providers: [
         PhotoService,
         { provide: FavoritesService, useValue: favorites },
-        provideHttpClient(withXhr()),
+        provideHttpClient(),
         provideHttpClientTesting() // Modern functional testing HTTP client provider
       ]
     });

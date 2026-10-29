@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from './auth.service';
 import { AuthResponse, CurrentUser } from '../../models/auth.model';
@@ -17,7 +17,7 @@ describe('AuthService', () => {
   let httpMock: HttpTestingController;
 
   function createService(): AuthService {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(withXhr()), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     httpMock = TestBed.inject(HttpTestingController);
     return TestBed.inject(AuthService);
   }

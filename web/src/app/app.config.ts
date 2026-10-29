@@ -2,7 +2,7 @@ import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalE
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { IMAGE_LOADER } from '@angular/common';
 import { picsumLoader } from './shared/images/picsum-loader';
 import { authInterceptor } from './shared/http/auth.interceptor';
@@ -13,7 +13,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withXhr(), withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor])),
     { provide: IMAGE_LOADER, useValue: picsumLoader },
     // Restore a stored session before the first route runs, so guards and the header know who is signed in
     provideAppInitializer(() => inject(AuthService).restoreSession())

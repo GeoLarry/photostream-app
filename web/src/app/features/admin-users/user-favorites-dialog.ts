@@ -1,4 +1,4 @@
-import { Component, inject, resource, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, resource } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { MatButton } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
@@ -35,7 +35,6 @@ import { UserSummary } from '../../models/user.model';
       <button mat-button mat-dialog-close>Close</button>
     </mat-dialog-actions>
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
   styles: `
     .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
     figure { margin: 0; }

@@ -1,4 +1,4 @@
-import { Component, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -13,7 +13,6 @@ import { apiErrorCode, apiErrorMessage, safeReturnUrl } from '../../shared/http/
 @Component({
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterLink, MatCard, MatFormField, MatLabel, MatInput, MatError, MatButton, MatProgressSpinner],
-  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './login.html',
 })
 export class Login {

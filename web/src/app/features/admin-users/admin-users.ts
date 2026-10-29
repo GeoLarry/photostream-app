@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -26,7 +26,6 @@ import { UserFavoritesDialog } from './user-favorites-dialog';
     MatButton, MatChipSet, MatChip, MatProgressBar,
   ],
   templateUrl: './admin-users.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin-users.scss',
 })
 export class AdminUsers implements OnInit {
