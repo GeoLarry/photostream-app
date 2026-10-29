@@ -102,6 +102,50 @@ describe('FavoritesService', () => {
     expect(service.favorites()).toEqual([]);
   });
 
+  it('does not reload when the signed-in user is only refreshed', async () => {
+    create();
+    await signIn(1, [response('10')]);
+
+    currentUser.set({ ...user(1), firstName: 'John' });
+    TestBed.tick();
+
+    httpMock.expectNone(url);
+    expect(service.favorites().length).toBe(1);
+  });
+
+  it('keeps loading for the next user when the previous user\'s answer arrives late', async () => {
+    create();
+    currentUser.set(user(1));
+    TestBed.tick();
+    currentUser.set(user(2));
+    TestBed.tick();
+    const [first, second] = httpMock.match(url);
+
+    first.flush([response('10')]);
+    await Promise.resolve();
+    expect(service.isLoading()).toBe(true);
+    expect(service.favorites()).toEqual([]);
+
+    second.flush([response('20')]);
+    await Promise.resolve();
+    expect(service.isLoading()).toBe(false);
+    expect(service.favorites().map(p => p.id)).toEqual(['20']);
+  });
+
+  it('stops loading when the user signs out', () => {
+    create();
+    currentUser.set(user(1));
+    TestBed.tick();
+    const request = httpMock.expectOne(url);
+    expect(service.isLoading()).toBe(true);
+
+    currentUser.set(null);
+    TestBed.tick();
+
+    expect(service.isLoading()).toBe(false);
+    request.flush([]);
+  });
+
   it('reports a failed load and can retry', async () => {
     create();
     currentUser.set(user(1));

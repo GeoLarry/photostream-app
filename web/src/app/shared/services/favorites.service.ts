@@ -1,4 +1,4 @@
-import { Injectable, effect, inject, signal, untracked } from '@angular/core';
+import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -29,21 +29,28 @@ export class FavoritesService {
   isLoading = this.isLoadingSignal.asReadonly();
   loadFailed = this.loadFailedSignal.asReadonly();
 
+  // Looked up for every card on every render, so a Set rather than a search through the list
+  private favoriteIds = computed(() => new Set(this.favoritesSignal().map(p => p.id)));
+  // Only a different user (or none) matters, not a new object for the same one
+  private userId = computed(() => this.auth.currentUser()?.id);
+
   // Photo ids with a request in flight, so a double click cannot send opposite requests
   private pending = new Set<string>();
+  // Number of the newest load, so an answer for a user who has signed out (or been replaced) is ignored
+  private requestId = 0;
 
   constructor() {
     removeLegacyFavorites();
 
     // Follow the signed-in user: load their favorites, or clear them on sign-out
     effect(() => {
-      const userId = this.auth.currentUser()?.id;
+      const userId = this.userId();
       untracked(() => userId === undefined ? this.clear() : this.load());
     });
   }
 
   isFavorite(id: string): boolean {
-    return this.favoritesSignal().some(p => p.id === id);
+    return this.favoriteIds().has(id);
   }
 
   getById(id: string): Photo | undefined {
@@ -51,19 +58,18 @@ export class FavoritesService {
   }
 
   async load(): Promise<void> {
-    const userId = this.auth.currentUser()?.id;
-    if (userId === undefined) return;
+    if (this.userId() === undefined) return;
+    const id = ++this.requestId;
 
     this.isLoadingSignal.set(true);
     this.loadFailedSignal.set(false);
     try {
       const favorites = await firstValueFrom(this.http.get<FavoriteResponse[]>(this.url));
-      // Ignore a late answer for a user who has signed out (or been replaced) in the meantime
-      if (this.auth.currentUser()?.id === userId) this.favoritesSignal.set(favorites.map(toPhoto));
+      if (id === this.requestId) this.favoritesSignal.set(favorites.map(toPhoto));
     } catch {
-      if (this.auth.currentUser()?.id === userId) this.loadFailedSignal.set(true);
+      if (id === this.requestId) this.loadFailedSignal.set(true);
     } finally {
-      this.isLoadingSignal.set(false);
+      if (id === this.requestId) this.isLoadingSignal.set(false);
     }
   }
 
@@ -101,7 +107,9 @@ export class FavoritesService {
   }
 
   private clear(): void {
+    this.requestId++; // a load still in flight is for the previous user
     this.favoritesSignal.set([]);
+    this.isLoadingSignal.set(false);
     this.loadFailedSignal.set(false);
   }
 
