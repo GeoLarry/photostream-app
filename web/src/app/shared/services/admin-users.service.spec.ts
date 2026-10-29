@@ -1,3 +1,4 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -119,11 +120,15 @@ describe('AdminUsersService', () => {
   });
 
   it("returns a user's favorites as photos", async () => {
-    const loading = service.favoritesOf(user(1));
+    const favorites = TestBed.runInInjectionContext(() => service.favoritesOf(user(1)));
+    expect(favorites.value()).toEqual([]);
+    TestBed.tick();
+
     httpMock.expectOne(`${url}/1/favorites`).flush([{
         photoId: '10', author: 'A', width: 10, height: 5, url: 'https://u/10', downloadUrl: 'https://d/10', createdAtUtc: '2026-10-28T10:00:00Z',
       }]);
+    await TestBed.inject(ApplicationRef).whenStable();
 
-    expect(await loading).toEqual([{ id: '10', author: 'A', width: 10, height: 5, url: 'https://u/10', download_url: 'https://d/10' }]);
+    expect(favorites.value()).toEqual([{ id: '10', author: 'A', width: 10, height: 5, url: 'https://u/10', download_url: 'https://d/10' }]);
   });
 });
