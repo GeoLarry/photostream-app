@@ -78,3 +78,8 @@ App on http://localhost:4200. The app calls the API on its own origin (`/api`); 
 - [x] Admin page for users
 - [x] Upgrade to the latest Angular and Vitest
 - [ ] Live demo
+
+## License
+
+© 2026 George D Larentzakis. All rights reserved.
+Shared for portfolio and evaluation purposes only, see [LICENSE](LICENSE).
