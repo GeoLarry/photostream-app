@@ -5,6 +5,20 @@ A full-stack photo gallery: browse an endless stream of photos and keep your fav
 [![API](https://github.com/GeoLarry/photostream-app/actions/workflows/api.yml/badge.svg)](https://github.com/GeoLarry/photostream-app/actions/workflows/api.yml)
 [![Web](https://github.com/GeoLarry/photostream-app/actions/workflows/web.yml/badge.svg)](https://github.com/GeoLarry/photostream-app/actions/workflows/web.yml)
 
+![Photostream: the photo stream](docs/screenshots/photos.jpg)
+
+## Screenshots
+
+| Photo details | Log in |
+|---|---|
+| ![A photo's detail page with the add to favorites button](docs/screenshots/photo-details.jpg) | ![The login form](docs/screenshots/login.png) |
+| **Favorites** | **Admin → Users** |
+| ![The favorites page of a logged-in user](docs/screenshots/favorites.jpg) | ![The admin page with users, roles and account status](docs/screenshots/admin-users.png) |
+
+<p align="center">
+  <img src="docs/screenshots/mobile.jpg" alt="The photo stream on a phone" width="280">
+</p>
+
 ## Features
 
 - Infinite scroll over photos from [Picsum](https://picsum.photos), with a detail page for every photo
